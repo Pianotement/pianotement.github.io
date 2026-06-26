@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Le quatrain classique en 6415 - Pianotement</title>
+<style>
+  body { background-color: #14191f; color: #f5f6fa; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
+  
+  /* LOGO EN LIEN CLIQUABLE ET AJOUT BOUTON YOUTUBE */
+  header { background: #1b222a; border-bottom: 2px solid #232d38; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .logo-link { text-decoration: none; }
+  .logo-site { font-size: 22px; font-weight: 800; color: #00d2d3; letter-spacing: 1px; text-transform: uppercase; }
+  .logo-site span { color: #f1c40f; }
+  
+  .yt-header-btn { background: #ff4757; color: white; text-decoration: none; font-size: 12px; font-weight: bold; padding: 6px 12px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; transition: background 0.2s; }
+  .yt-header-btn:hover { background: #ff6b81; }
+
+  .badge-eleve { background: #2e3d4d; color: #00d2d3; font-size: 13px; font-weight: bold; padding: 4px 12px; border-radius: 20px; border: 1px solid #3d5166; }
+
+  .main-content { flex: 1; padding: 40px 20px; max-width: 1000px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+  
+  .piano-container { background: #1b222a; padding: 35px; border-radius: 12px; border: 1px solid #232d38; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+  h2 { margin-top: 0; color: #ffffff; font-size: 26px; font-weight: 600; margin-bottom: 25px; }
+  
+  .piano-wrapper { overflow-x: auto; padding: 15px; background: #0f1318; border-radius: 8px; margin-bottom: 30px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); }
+  .piano { position: relative; width: 840px; height: 220px; margin: 0 auto; }
+  .key { position: absolute; top: 0; border: 1px solid #1a1a1a; border-radius: 0 0 6px 6px; box-sizing: border-box; cursor: pointer; transition: background-color 0.05s; }
+  .key.white { background: #fdfdfd; width: 40px; height: 220px; z-index: 1; box-shadow: inset 0 -8px 5px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.2); }
+  .key.black { background: #161616; width: 24px; height: 130px; z-index: 2; box-shadow: inset 0 -4px 4px rgba(255,255,255,0.15), 0 3px 6px rgba(0,0,0,0.4); }
+  
+  .key.white.remanence, .key.black.remanence { background: #d4edda !important; }
+  
+  .key.white:active, .key.white.active { background: #3498db !important; }
+  .key.black:active, .key.black.active { background: #2980b9 !important; }
+  
+  .finger { position: absolute; bottom: 18px; left: 0; width: 100%; text-align: center; font-weight: bold; font-size: 20px; color: #e74c3c; pointer-events: none; opacity: 0; transition: opacity 0.1s;}
+  .key.black .finger { color: #e74c3c; bottom: 12px; } 
+  .finger.active-text { opacity: 1; }
+  .key.black.active .finger { color: #f1c40f; } 
+
+  .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; }
+  button { font-family: inherit; font-weight: bold; border: none; padding: 12px 28px; font-size: 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; }
+  .btn-play { background: #10ac84; color: white; }
+  .btn-play:hover { background: #1dd1a1; transform: translateY(-1px); }
+  .btn-pause { background: #f39c12; color: white; }
+  .btn-pause:hover { background: #e67e22; transform: translateY(-1px); }
+  .btn-reset { background: #576574; color: white; }
+  .btn-reset:hover { background: #8395a7; }
+
+  .annotations-card { background: #1b222a; border: 1px solid #232d38; border-left: 5px solid #00d2d3; border-radius: 8px; margin-top: 25px; padding: 25px; text-align: left; box-shadow: 0 6px 20px rgba(0,0,0,0.2); display: none; }
+  .annotations-card h3 { margin-top: 0; margin-bottom: 12px; color: #00d2d3; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+  .annotations-content { font-size: 16px; line-height: 1.6; color: #dcdde1; white-space: pre-wrap; word-wrap: break-word; height: auto; }
+
+  /* PIED DE PAGE ENRICHIS */
+  footer { background: #0f1318; border-top: 2px solid #1b222a; text-align: center; padding: 30px; margin-top: 40px; }
+  .footer-row { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .footer-link { font-size: 28px; font-weight: 900; color: #ffffff; text-decoration: none; letter-spacing: 2px; transition: color 0.2s ease; }
+  .footer-link span { color: #00d2d3; }
+  .footer-link:hover { color: #00d2d3; }
+  
+  .yt-footer-btn { background: #ff4757; color: white; text-decoration: none; font-size: 13px; font-weight: bold; padding: 6px 14px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; transition: background 0.2s; }
+  .yt-footer-btn:hover { background: #ff6b81; }
+  .footer-sub { font-size: 12px; color: #576574; margin-top: 12px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a href="https://www.pianotement.fr/" target="_blank" class="logo-link" title="Visiter le site Pianotement">
+      <div class="logo-site">PIANO<span>TEMENT</span></div>
+    </a>
+    <a href="https://www.youtube.com/@pianotement" target="_blank" class="yt-header-btn">▶ YouTube</a>
+  </div>
+  <div class="badge-eleve">Espace Exercices Interactifs</div>
+</header>
+
+<div class="main-content">
+  <div class="piano-container">
+    <h2>Le quatrain classique en 6415</h2>
+    <div class="piano-wrapper">
+      <div id="pianoVisualizer" class="piano"></div>
+    </div>
+    <div class="controls">
+      <button class="btn-play" onclick="lancerPattern()">▶ Jouer</button>
+      <button class="btn-pause" onclick="pausePattern()">⏸ Pause</button>
+      <button class="btn-reset" onclick="stopperPattern()">⏹ Recommencer</button>
+    </div>
+  </div>
+
+  <div id="annotationsCard" class="annotations-card">
+    <h3>📝 Notes du professeur & Conseils :</h3>
+    <div id="annotationsBox" class="annotations-content"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-row">
+    <a href="https://www.pianotement.fr/" target="_blank" class="footer-link">PIANO<span>TEMENT</span></a>
+    <a href="https://www.youtube.com/@pianotement" target="_blank" class="yt-footer-btn">▶ Rejoindre sur YouTube</a>
+  </div>
+  <div class="footer-sub">Méthode de Piano & Motifs Visuels Autonomes</div>
+</footer>
+
+<script>
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+
+  const notesDef = [
+    { n: 'C', t: 'white' }, { n: 'C#', t: 'black' }, { n: 'D', t: 'white' }, { n: 'D#', t: 'black' },
+    { n: 'E', t: 'white' }, { n: 'F', t: 'white' }, { n: 'F#', t: 'black' }, { n: 'G', t: 'white' },
+    { n: 'G#', t: 'black' }, { n: 'A', t: 'white' }, { n: 'A#', t: 'black' }, { n: 'B', t: 'white' }
+  ];
+
+  function getFrequency(noteName) {
+    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const name = noteName.slice(0, -1);
+    const octave = parseInt(noteName.slice(-1));
+    const semitones = notes.indexOf(name) + (octave + 1) * 12;
+    return 440 * Math.pow(2, (semitones - 69) / 12);
+  }
+
+  const piano = document.getElementById('pianoVisualizer');
+  let whiteCount = 0;
+  for (let oct = 3; oct <= 5; oct++) {
+    notesDef.forEach(item => {
+      const key = document.createElement('div');
+      const id = item.n + oct;
+      key.id = id;
+      key.classList.add('key', item.t);
+      
+      const finger = document.createElement('span');
+      finger.classList.add('finger');
+      finger.id = 'f-' + id;
+      key.appendChild(finger);
+
+      if (item.t === 'white') {
+        key.style.left = (whiteCount * 40) + 'px';
+        whiteCount++;
+      } else {
+        key.style.left = (whiteCount * 40 - 12) + 'px';
+      }
+      
+      key.addEventListener('mousedown', () => {
+        declencherSynthe(getFrequency(id), tempo);
+      });
+      piano.appendChild(key);
+    });
+  }
+
+  function declencherSynthe(freq, activeTempoMs) {
+    if(!audioCtx) audioCtx = new AudioContext();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'triangle'; 
+    osc.frequency.value = freq;
+    
+    const maintenant = audioCtx.currentTime;
+    gainNode.gain.setValueAtTime(0, maintenant);
+    gainNode.gain.linearRampToValueAtTime(0.4, maintenant + 0.03);
+    
+    let dureeSon = 0.8;
+    
+    if (activerSustain) {
+      dureeSon = activeTempoMs / 1000;
+      gainNode.gain.setValueAtTime(0.4, maintenant + dureeSon - 0.05);
+      gainNode.gain.linearRampToValueAtTime(0.001, maintenant + dureeSon);
+    } else {
+      gainNode.gain.exponentialRampToValueAtTime(0.001, maintenant + 0.8);
+    }
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start(maintenant);
+    osc.stop(maintenant + dureeSon);
+  }
+
+  const sequenceData = [[{"id":"A3","doigt":"5"}],[{"id":"C4","doigt":"3"}],[{"id":"E4","doigt":"5"}],[{"id":"C4","doigt":"3"}],[{"id":"A3","doigt":"5"}],[{"id":"C4","doigt":"3"}],[{"id":"E4","doigt":"5"}],[{"id":"C4","doigt":"3"}],[{"id":"F3","doigt":"5"}],[{"id":"A3","doigt":"3"}],[{"id":"C4","doigt":"5"}],[{"id":"A3","doigt":"3"}],[{"id":"C3","doigt":"5"}],[{"id":"E3","doigt":"3"}],[{"id":"G3","doigt":"5"}],[{"id":"E3","doigt":"3"}],[{"id":"G3","doigt":"5"}],[{"id":"B3","doigt":"3"}],[{"id":"D4","doigt":"1"}],[{"id":"B3","doigt":"3"}]];
+  const tempo = 1500;
+  const activerRemanence = true;
+  const activerSustain = true;
+  const txtAnnotations = "Dans l'exemple ci dessus l'accord de La mineur est doublé, pour bien comprendre \"la boucle\", on peut au début, compter 1 2 3 4, 1 2 3 4. Pour bien ressentir le quatrain.\n\nOn peut boucler autant de fois chaque accords, sans aucunes règles, le principal est le ressenti.\n\nAttention : Ne pas se faire piéger par la vitesse, même si l'on passe de deux temps, la marche, à quatre temps, le quatrain, il ne s'agit pas d'aller deux fois plus vite, on le joue calmement, pour bien le ressentir, balancer son buste au rythme qu'il nous convient.\n\nTravailler l'arpège à la main gauche, bien sentir le balancier sur le majeur central. Balancer tout le corps de la même façon que la marche pour fluidifier et automatiser le mouvement. La rotation de l'avant bras et du poignet aide, le petit doigt et le pouces sont les extrêmes de la balance, et le majeur est le pivot, le point central de la balance.\n\nPendant l’exécution, prendre conscience de son environnement, essayer de penser à autre chose, regarder sa main droite, le but est de passer cette main gauche en mode \"automatique\", bien écouter le son du quatrain, comme il nous emmène vers de nouveaux horizons.\n\nNe s'attaquer aux transitions d'accords que quand le mouvement est bien ressenti, et que l'on a bien travailler les différentes positions de la main droite (Do, Ré, Mi, Fa, Sol.) sur un seul accord.\n\nPour les transitions, on se sert du majeur pour guider le petit doigt à la recherche de la première note du prochain accord.\n\nAttention au passage du Do majeur, vers Sol majeur, qui nécessitera un \"saut dans le vide\" de toute la main. \n\nBon courage ! ";
+  
+  if(txtAnnotations && txtAnnotations.trim() !== "") {
+    document.getElementById('annotationsBox').innerText = txtAnnotations;
+    document.getElementById('annotationsCard').style.display = 'block';
+  }
+
+  let isPlaying = false;
+  let currentStep = 0;
+  let stepTimeout = null;
+  let activeExtinctions = []; 
+
+  if (activerRemanence) {
+    sequenceData.forEach(temps => {
+      temps.forEach(noteData => {
+        const kEl = document.getElementById(noteData.id);
+        if (kEl) kEl.classList.add('remanence');
+      });
+    });
+  }
+
+  function nettoyerTouchesActives() {
+    activeExtinctions.forEach(clearTimeout);
+    activeExtinctions = [];
+    document.querySelectorAll('.key.active').forEach(k => k.classList.remove('active'));
+    document.querySelectorAll('.finger.active-text').forEach(f => {
+      f.innerText = ''; 
+      f.classList.remove('active-text');
+    });
+  }
+
+  function jouerEtape() {
+    if (!isPlaying) return;
+    nettoyerTouchesActives();
+
+    if (currentStep >= sequenceData.length) {
+      currentStep = 0; 
+    }
+
+    const notesCourantes = sequenceData[currentStep];
+
+    notesCourantes.forEach(noteData => {
+      declencherSynthe(getFrequency(noteData.id), tempo);
+      
+      const kEl = document.getElementById(noteData.id);
+      const fEl = document.getElementById('f-' + noteData.id);
+      
+      if(kEl) kEl.classList.add('active');
+      if(fEl && noteData.doigt) {
+        fEl.innerText = noteData.doigt;
+        fEl.classList.add('active-text');
+      }
+
+      const extT = setTimeout(() => {
+        if(kEl) kEl.classList.remove('active');
+        if(fEl) { fEl.innerText = ''; fEl.classList.remove('active-text'); }
+      }, tempo);
+      
+      activeExtinctions.push(extT);
+    });
+
+    currentStep++;
+    stepTimeout = setTimeout(jouerEtape, tempo);
+  }
+
+  function lancerPattern() {
+    if (isPlaying) return;
+    isPlaying = true;
+    jouerEtape();
+  }
+
+  function pausePattern() {
+    isPlaying = false;
+    clearTimeout(stepTimeout);
+    activeExtinctions.forEach(clearTimeout);
+    activeExtinctions = [];
+  }
+
+  function stopperPattern() {
+    isPlaying = false;
+    clearTimeout(stepTimeout);
+    nettoyerTouchesActives();
+    currentStep = 0; 
+  }
+</script>
+</body>
+</html>
