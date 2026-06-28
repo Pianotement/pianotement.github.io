@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Le Studio de Leçons MIDI - Séquenceur Pianotement v17</title>
+<title>Le Studio de Leçons MIDI - Séquenceur Pianotement v20</title>
 <style>
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e272e; color: #f5f6fa; margin: 0; padding: 20px; }
   
@@ -66,10 +66,15 @@
   .recording-indicator { display: none; background: #e74c3c; color: #fff; text-align: center; padding: 10px; border-radius: 4px; font-weight: bold; animation: recordBlink 1.2s infinite; border: 1px dashed #ffffcc; }
 
   /* ÉDITEUR DE TEXTE */
-  .toolbar { display: flex; gap: 6px; background: #222f3e; padding: 8px; border-radius: 6px 6px 0 0; border-bottom: 2px solid #1e272e; align-items: center; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; background: #222f3e; padding: 8px; border-radius: 6px 6px 0 0; border-bottom: 2px solid #1e272e; align-items: center; }
   .toolbar button { background: #353b48; color: white; min-width: 38px; height: 35px; font-weight: bold; cursor: pointer; font-size: 14px; padding: 5px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-  .toolbar button:hover { background: #00d2d3; }
+  .toolbar button:hover { background: #00d2d3; color: #2f3640; }
   .toolbar .separator { color: #576574; margin: 0 4px; font-weight: bold; user-select: none; }
+  
+  /* Styles ajoutés pour les nouveaux contrôles de la toolbar */
+  .toolbar select { background: #353b48; color: white; border: 1px solid #576574; border-radius: 4px; padding: 5px; cursor: pointer; font-size: 14px; height: 35px; }
+  .toolbar select:hover { background: #00d2d3; color: #2f3640; }
+  .toolbar input[type="color"] { background: transparent; border: none; cursor: pointer; height: 30px; width: 30px; padding: 0; }
   
   .editor { background: #f5f6fa; color: #2f3640; min-height: 380px; padding: 15px; border-radius: 0 0 6px 6px; font-family: 'Segoe UI', sans-serif; font-size: 16px; outline: none; overflow-y: auto; line-height: 1.5; }
   
@@ -88,7 +93,7 @@
 <body>
 
 <div class="header-generateur">
-  <h1>🎹 Éditeur de Leçon Interactive - Pianotement v17</h1>
+  <h1>🎹 Éditeur de Leçon Interactive - Pianotement v19</h1>
   <a href="https://www.youtube.com/@pianotement" target="_blank" class="btn-youtube">▶ Chaîne YouTube</a>
 </div>
 
@@ -163,6 +168,31 @@
       
       <span class="separator">|</span>
       
+      <input type="color" id="textColorPicker" title="Couleur du texte" onchange="document.execCommand('foreColor', false, this.value)">
+      
+      <select id="fontSizePicker" onchange="changerTaillePolice(this.value)" title="Taille de police">
+        <option value="">Taille</option>
+        <option value="12">12px</option>
+        <option value="14">14px</option>
+        <option value="16">16px</option>
+        <option value="18">18px</option>
+        <option value="20">20px</option>
+        <option value="24">24px</option>
+        <option value="28">28px</option>
+        <option value="36">36px</option>
+      </select>
+      
+      <select id="fontFamilyPicker" onchange="document.execCommand('fontName', false, this.value); this.value='';" title="Police">
+        <option value="">Police</option>
+        <option value="Segoe UI">Segoe UI</option>
+        <option value="Arial">Arial</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Courier New">Courier New</option>
+      </select>
+      
+      <span class="separator">|</span>
+      
       <button onclick="document.execCommand('formatBlock', false, 'H3')" title="Titre de section">Titre</button>
       <button onclick="document.execCommand('formatBlock', false, 'P')" title="Texte Normal">Texte</button>
       
@@ -170,6 +200,11 @@
       
       <button onclick="document.execCommand('justifyLeft', false, null)" title="Aligner à gauche">←</button>
       <button onclick="document.execCommand('justifyCenter', false, null)" title="Centrer la ligne">↔</button>
+
+      <span class="separator">|</span>
+
+      <button onclick="insererImageGithub()" title="Insérer une image depuis le répertoire Github" style="background:#f39c12; color:#14191f;">🖼️ Image</button>
+
     </div>
     <div id="lessonEditor" class="editor" contenteditable="true">
       <h3>Bienvenue !</h3>
@@ -204,6 +239,49 @@
   let claviersDeLaLecon = [];
   let modeSaisieActuel = 'manuel'; 
   let currentSustainPedalState = false;
+
+  // --- NOUVELLES FONCTIONS DE FORMATAGE DE TEXTE ET D'IMAGE --- //
+  
+  function changerTaillePolice(size) {
+    if(!size) return;
+    // Cette technique permet d'utiliser une taille de police exacte en px au lieu du standard 1-7.
+    document.execCommand("styleWithCSS", false, true);
+    document.execCommand("fontSize", false, "7"); // Applique une balise de repérage
+    let editor = document.getElementById('lessonEditor');
+    // On trouve la balise créée et on la remplace par la taille choisie
+    let fonts = editor.querySelectorAll('font[size="7"], span[style*="font-size: -webkit-xxx-large"], span[style*="font-size: xxx-large"]');
+    fonts.forEach(f => {
+        f.removeAttribute("size");
+        f.style.fontSize = size + "px";
+    });
+    // On remet le selecteur à zéro pour fluidité
+    document.getElementById('fontSizePicker').value = "";
+  }
+
+  function insererImageGithub() {
+    let filename = prompt("Nom du fichier image (ex: schema_1.jpg) :\n(L'image sera récupérée depuis https://pianotement.github.io/images/)");
+    if (filename) {
+        let url = "https://pianotement.github.io/images/" + filename;
+        // On insère l'image avec un attribut title pour indiquer comment redimensionner
+        let imgHTML = `<img src="${url}" style="max-width: 100%; height: auto; cursor: pointer; display: block; margin: 15px auto;" title="Cliquez sur l'image pour la redimensionner" />`;
+        document.execCommand('insertHTML', false, imgHTML);
+    }
+  }
+
+  // --- ÉCOUTEUR POUR LE REDIMENSIONNEMENT DES IMAGES AU CLIC --- //
+  document.getElementById('lessonEditor').addEventListener('click', function(e) {
+      if (e.target && e.target.tagName === 'IMG') {
+          // On récupère la largeur actuelle ou on met 100% par défaut
+          let currentWidth = e.target.style.width || "100%";
+          let newWidth = prompt("Redimensionner l'image.\nEntrez une nouvelle largeur (ex: 300px, 50%, ou 100%) :", currentWidth);
+          
+          if (newWidth) {
+              e.target.style.width = newWidth;
+              e.target.style.height = 'auto'; // Force le respect des proportions
+          }
+      }
+  });
+
 
   function changerModeSaisie(mode) {
     modeSaisieActuel = mode;
@@ -520,6 +598,9 @@
   .main-content { flex: 1; padding: 40px 20px; max-width: 960px; margin: 0 auto; width: 100%; box-sizing: border-box; font-size: 18px;}
   h3 { color: #00d2d3; margin-top: 30px; border-bottom: 1px solid #232d38; padding-bottom: 8px;}
   
+  /* Ajout de sécurité pour garantir la responsivité des images intégrées */
+  .main-content img { max-width: 100%; height: auto; border-radius: 8px; }
+
   .piano-container { background: #1b222a; padding: 25px; border-radius: 12px; border: 1px solid #232d38; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin: 30px 0; }
   .piano-container h4 { margin-top: 0; color: #ffffff; font-size: 22px; margin-bottom: 20px; }
   .piano-wrapper { overflow-x: auto; padding: 12px; background: #0f1318; border-radius: 8px; margin-bottom: 12px; }
@@ -808,7 +889,7 @@
     txtArea.value = template; txtArea.style.display = 'block'; txtArea.select();
     document.execCommand('copy'); txtArea.style.display = 'none';
     
-    alert("Leçon v17 générée ! Le bug d'affichage a été corrigé et le nouveau mode MIDI intégré. Le code est copié dans le presse-papiers.");
+    alert("Leçon v19 générée ! Nouvelles fonctionnalités de formatage de texte et insertion d'image ajoutées. Le code est copié dans le presse-papiers.");
   }
 </script>
 </body>
