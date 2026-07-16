@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Arcade Piano - V16</title>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* DESIGN GLOBAL ÉLITE */
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            text-align: center; \r
+            margin: 0; 
+            padding: 15px; 
+            overflow-x: hidden; 
+            color: #fff;
+            background-color: #1a1a1e;
+            background-image: url('piano_app_bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: -1;
+        }
+
+        .top-controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: rgba(30, 30, 35, 0.75); 
+            padding: 12px 25px; 
+            border-radius: 16px; 
+            margin-bottom: 15px; 
+            backdrop-filter: blur(15px); 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        h1 { 
+            font-weight: 800; 
+            font-size: 22px; 
+            margin: 0; 
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 30%, #a6a6a6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .right-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #2c2c35, #1e1e24);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action:hover {
+            background: linear-gradient(135deg, #3a3a45, #25252d);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary-gaming {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #000;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary-gaming:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+        }
+
+        .btn-danger-gaming {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4);
+            transition: all 0.25s ease;
+        }
+
+        .btn-danger-gaming:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 75, 43, 0.6);
+        }
+
+        select {
+            background-color: #25252d;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* CONFIG MODAL PANEL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 12, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .config-panel { 
+            background: #1e1e24; 
+            border-radius: 24px; 
+            padding: 30px; 
+            width: 90%; 
+            max-width: 850px; 
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: left;
+        }
+
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .config-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, #fff, #a6a6a6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 11fr);
+            gap: 20px;
+        }
+
+        .config-section {
+            background: rgba(255,255,255,0.02);
+            padding: 15px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .config-section h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #00f2fe;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #cdcdcd;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #4facfe;
+            cursor: pointer;
+        }
+
+        /* HUD & LIVE GAME STATS */
+        .hud-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .hud-card {
+            background: rgba(30, 30, 35, 0.6);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            min-width: 100px;
+            backdrop-filter: blur(5px);
+        }
+
+        .hud-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8a8a93;
+            margin-bottom: 2px;
+            font-weight: 600;
+        }
+
+        .hud-value {
+            font-size: 20px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hud-score { color: #00f2fe; }
+        .hud-combo { color: #ff007f; }
+        .hud-time { color: #ffcc00; }
+        .hud-accuracy { color: #00ffcc; }
+
+        /* VEXFLOW CONTAINER */
+        #notation-wrapper {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 15px;
+            width: fit-content;
+            margin: 0 auto 15px auto;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* PIANO VISUEL GAMING */
+        #piano-container {
+            display: flex;
+            justify-content: center;
+            background: #111;
+            padding: 15px;
+            border-radius: 16px;
+            width: fit-content;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 4px solid #222;
+            position: relative;
+        }
+
+        .piano-key {
+            width: 32px;
+            height: 130px;
+            background: white;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            border-radius: 0 0 4px 4px;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            transition: background-color 0.1s, transform 0.05s;
+        }
+
+        .piano-key.black {
+            width: 20px;
+            height: 80px;
+            background: black;
+            border: 1px solid #000;
+            margin-left: -10px;
+            margin-right: -10px;
+            z-index: 2;
+            border-radius: 0 0 3px 3px;
+        }
+
+        .piano-key:active, .piano-key.active-gui-white {
+            background: #4facfe !important;
+            transform: translateY(2px);
+        }
+
+        .piano-key.black:active, .piano-key.black.active-gui-black {
+            background: #00f2fe !important;
+            transform: translateY(2px);
+        }
+
+        .piano-key.correct-flash-white { background-color: #28a745 !important; }
+        .piano-key.correct-flash-black { background-color: #2ea44f !important; }
+        .piano-key.error-flash-white { background-color: #dc3545 !important; }
+        .piano-key.error-flash-black { background-color: #c93b4a !important; }
+
+        .key-label {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            font-size: 9px;
+            color: #555;
+            font-weight: 700;
+            text-align: center;
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        .piano-key.black .key-label {
+            color: #bbb;
+            bottom: 5px;
+        }
+
+        /* TEXTE DE CONFIG SOUS PIANO */
+        #config-summary {
+            font-size: 12px;
+            color: #8a8a93;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        /* MODAL DE FIN DE PARTIE - GAME OVER ÉPIQUE */
+        .game-over-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 12, 0.92);
+            backdrop-filter: blur(15px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .game-over-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .game-over-box {
+            background: linear-gradient(180deg, #232329, #16161c);
+            border-radius: 32px;
+            padding: 40px;
+            width: 90%;
+            max-width: 550px;
+            text-align: center;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.8), 0 0 40px rgba(79, 172, 254, 0.1);
+            border: 1px solid rgba(255,255,255,0.06);
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .game-over-overlay.active .game-over-box {
+            transform: scale(1);
+        }
+
+        .go-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffcc00, #ff9900);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .go-comment {
+            font-size: 15px;
+            color: #cdcdcd;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            font-style: italic;
+            padding: 0 10px;
+        }
+
+        .go-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .go-stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 16px;
+        }
+
+        .go-stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #8a8a93;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .go-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* HISTORIQUE DES UNISSONS ET INFOS */
+        .history-box {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.04);
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .history-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #8a8a93;
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .history-badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #25252d;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .history-badge.correct { color: #00ffcc; border: 1px solid rgba(0,255,204,0.2); }
+        .history-badge.wrong { color: #ff416c; border: 1px solid rgba(255,65,108,0.2); }
+
+        .ambitus-custom-selectors {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .ambitus-custom-selectors select {
+            flex: 1;
+            font-size: 11px;
+            padding: 5px;
+            background: #2d2d38;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            border-radius: 6px;
+        }
+
+        /* JSON Area text */
+        .json-area {
+            width: 100%;
+            height: 70px;
+            background: #141419;
+            color: #00ffcc;
+            font-family: monospace;
+            font-size: 11px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+            resize: none;
+            margin-top: 5px;
+        }
+
+        .midi-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.04);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .midi-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff416c;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #ff416c;
+        }
+        .midi-dot.connected {
+            background-color: #00ffcc;
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        .arcade-score-popup {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8), 0 0 5px #ffcc00;
+            pointer-events: none;
+            animation: popupFloatUp 0.6s ease-out forwards;
+            z-index: 500;
+        }
+        @keyframes popupFloatUp {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            30% { transform: translate(-50%, -80%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -120%) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-controls">
+        <div class="logo-area">
+            <span class="logo-icon">⌨</span>
+            <h1>PIANOTEMENT ARCADE</h1>
+            <div class="midi-indicator">
+                <span id="midi-dot" class="midi-dot"></span>
+                <span id="midi-text">MIDI</span>
+            </div>
+        </div>
+
+        <div class="right-actions">
+            <select id="cfg-game-mode" onchange="toggleGameModeGui(); sauvegarderDansLocalStorage();">
+                <option value="melodie">Mélodie</option>
+                <option value="survie">Mode Survie</option>
+                <option value="chrono">Contre-la-montre</option>
+            </select>
+            <button class="btn-action" onclick="ouvrirConfiguration()"><span style="font-size:15px;">⚙</span> Configuration</button>
+            <button id="btn-start" class="btn-primary-gaming" onclick="demarrerPartie()">Jouer</button>
+            <button id="btn-stop" class="btn-danger-gaming" onclick="stopperPartie()" style="display:none;">Arrêter</button>
+        </div>
+    </div>
+
+    <div class="hud-container">
+        <div class="hud-card">
+            <div class="hud-label" id="lbl-hud-score">Score</div>
+            <div id="hud-score" class="hud-value hud-score">0</div>
+        </div>
+        <div class="hud-card" id="card-hud-combo">
+            <div class="hud-label" id="lbl-hud-combo">Combo</div>
+            <div id="hud-combo" class="hud-value hud-combo">x0</div>
+        </div>
+        <div class="hud-card" id="card-hud-time" style="display:none;">
+            <div class="hud-label" id="lbl-hud-time">Temps</div>
+            <div id="hud-time" class="hud-value hud-time">0s</div>
+        </div>
+        <div class="hud-card">
+            <div class="hud-label" id="lbl-hud-accuracy">Précision</div>
+            <div id="hud-accuracy" class="hud-value hud-accuracy">100%</div>
+        </div>
+    </div>
+
+    <div id="notation-wrapper">
+        <div id="notation-render-area"></div>
+    </div>
+
+    <div id="piano-container"></div>
+    <div id="config-summary">Chargement de la configuration...</div>
+
+    <div class="history-box">
+        <div class="history-title" id="lbl-history-title">Historique des notes jouées</div>
+        <div id="history-list" class="history-list"></div>
+    </div>
+
+    <div id="config-modal" class="modal-overlay" onclick="fermerConfigurationParOverlay(event)">
+        <div class="config-panel">
+            <div class="config-header">
+                <h2 class="config-title" id="lbl-modal-title">Paramètres de Jeu Élite</h2>
+                <button class="btn-action" onclick="fermerConfiguration()">Fermer & Appliquer</button>
+            </div>
+
+            <div class="config-grid">
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <div class="config-section">
+                        <h3 id="lbl-sec-sys">Système</h3>
+                        <div class="form-group">
+                            <label for="cfg-lang">Langue / Language</label>
+                            <select id="cfg-lang" onchange="changerLangue(this.value); sauvegarderDansLocalStorage();">
+                                <option value="fr">Français</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cfg-input-source" id="lbl-input-src">Source d'entrée</label>
+                            <select id="cfg-input-source" onchange="toggleInputSource(); sauvegarderDansLocalStorage();">
+                                <option value="midi">Clavier MIDI Physique</option>
+                                <option value="gui">Clavier Virtuel Écran</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3 id="lbl-sec-rules">Règles & Limites</h3>
+                        <div id="group-survie-vies" class="form-group">
+                            <label for="cfg-survie-vies" id="lbl-limit-vies">Nombre de vies (Survie)</label>
+                            <select id="cfg-survie-vies" onchange="sauvegarderDansLocalStorage()">
+                                <option value="1">1 Vie (Hardcore)</option>
+                                <option value="3" selected>3 Vies (Standard)</option>
+                                <option value="5">5 Vies (Permissif)</option>
+                            </select>
+                        </div>
+                        <div id="group-chrono-temps" class="form-group" style="display:none;">
+                            <label for="cfg-chrono-temps" id="lbl-limit-temps">Temps alloué (Chrono)</label>
+                            <select id="cfg-chrono-temps" onchange="sauvegarderDansLocalStorage()">
+                                <option value="30">30 Secondes</option>
+                                <option value="60" selected>60 Secondes</option>
+                                <option value="120">120 Secondes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cfg-game-notation" id="lbl-notation-type">Notation des notes</label>
+                            <select id="cfg-game-notation" onchange="rafraichirPianoLabels(); sauvegarderDansLocalStorage();">
+                                <option value="fr">DO RE MI FA SOL LA SI</option>
+                                <option value="en">C D E F G A B</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3 id="lbl-sec-json">Profil de sauvegarde (JSON)</h3>
+                        <label style="font-size:11px; color:#aaa;" id="lbl-json-desc">Copiez ce texte pour sauvegarder ou collez-en un pour restaurer vos réglages.</label>
+                        <textarea id="json-config-area" class="json-area" onchange="importerJsonDepuisArea()"></textarea>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <div class="config-section">
+                        <h3 id="lbl-sec-gclef">Clé de Sol 𝄞</h3>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" id="chk-g-facile" checked onchange="sauvegarderDansLocalStorage()"> <span id="lbl-g-fac">Facile (Lignes de la portée Do4-Sol4)</span></label>
+                            <label class="checkbox-item"><input type="checkbox" id="chk-g-moyen" checked onchange="sauvegarderDansLocalStorage()"> <span id="lbl-g-moy">Moyen (Interlignes et extension Do4-Do5)</span></label>
+                            <label class="checkbox-item"><input type="checkbox" id="chk-g-difficile" checked onchange="sauvegarderDansLocalStorage()"> <span id="lbl-g-dif">Difficile (Lignes supplémentaires La3-Si5)</span></label>
+                            <label class="checkbox-item"><input type="checkbox" id="chk-g-custom" onchange="toggleCustomAmbitus(); sauvegarderDansLocalStorage();"> <span id="lbl-g-cus" style="color:#ffcc00; font-weight:700;">Ambitus sur mesures</span></label>
+                        </div>
+                        <div id="ambitus-g-custom-selectors" class="ambitus-custom-selectors" style="display:none;">
+                            <select id="sel-g-min" onchange="sauvegarderDansLocalStorage()"></select>
+                            <select id="sel-g-max" onchange="sauvegarderDansLocalStorage()"></select>
+                        </div>
+                        <div class="form-group" style="margin-top:10px;">
+                            <label for="cfg-g-debit" id="lbl-g-deb">Débit rythmique</label>
+                            <select id="cfg-g-debit" onchange="sauvegarderDansLocalStorage()">
+                                <option value="ronde" selected>Rondes uniquement</option>
+                                <option value="blanche">Blanches</option>
+                                <option value="noire">Noires</option>
+                                <option value="melange">Mélange Aléatoire</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3 id="lbl-sec-fclef">Clé de Fa 𝄢</h3>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" id="chk-f-facile" checked onchange="sauvegarderDansLocalStorage()"> <span id="lbl-f-fac">Facile (Lignes de la portée Sol2-Ré3)</span></label>
+                            <label class="checkbox-item"><input type="checkbox" id="chk-f-moyen" checked onchange="sauvegarderDansLocalStorage()"> <span id="lbl-f-moy">Moyen (Interlignes et extension Fa2-Fa3)</span></label>
+                            <label class="checkbox-item"><input type="checkbox" id="chk-f-difficile" checked onchange="sauvegarderDansLocalStorage()"> <span id="lbl-f-dif">Difficile (Lignes supplémentaires Do2-Do5)</span></label>
+                            <label class="checkbox-item"><input type="checkbox" id="chk-f-custom" onchange="toggleCustomAmbitus(); sauvegarderDansLocalStorage();"> <span id="lbl-f-cus" style="color:#ffcc00; font-weight:700;">Ambitus sur mesures</span></label>
+                        </div>
+                        <div id="ambitus-f-custom-selectors" class="ambitus-custom-selectors" style="display:none;">
+                            <select id="sel-f-min" onchange="sauvegarderDansLocalStorage()"></select>
+                            <select id="sel-f-max" onchange="sauvegarderDansLocalStorage()"></select>
+                        </div>
+                        <div class="form-group" style="margin-top:10px;">
+                            <label for="cfg-f-debit" id="lbl-f-deb">Débit rythmique</label>
+                            <select id="cfg-f-debit" onchange="sauvegarderDansLocalStorage()">
+                                <option value="ronde" selected>Rondes uniquement</option>
+                                <option value="blanche">Blanches</option>
+                                <option value="noire">Noires</option>
+                                <option value="melange">Mélange Aléatoire</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-modal" class="game-over-overlay">
+        <div class="game-over-box">
+            <h2 id="go-title" class="go-title">FIN DE PARTIE</h2>
+            <div id="go-comment" class="go-comment">"Une analyse impressionnante, continuez ainsi !"</div>
+            
+            <div class="go-stats-grid">
+                <div class="go-stat-card">
+                    <div class="go-stat-label" id="lbl-go-score">Score final</div>
+                    <div id="go-score" class="go-stat-value" style="color:#00f2fe;">0</div>
+                </div>
+                <div class="go-stat-card">
+                    <div class="go-stat-label" id="lbl-go-accuracy">Précision globale</div>
+                    <div id="go-accuracy" class="go-stat-value" style="color:#00ffcc;">100%</div>
+                </div>
+                <div class="go-stat-card">
+                    <div class="go-stat-label" id="lbl-go-notes">Notes validées</div>
+                    <div id="go-notes" class="go-stat-value" style="color:#ffcc00;">0 / 0</div>
+                </div>
+                <div class="go-stat-card">
+                    <div class="go-stat-label" id="lbl-go-combo">Plus long Combo</div>
+                    <div id="go-combo" class="go-stat-value" style="color:#ff007f;">x0</div>
+                </div>
+            </div>
+
+            <button class="btn-primary-gaming" onclick="fermerGameOverEtRejouer()" style="width:100%; padding:14px; font-size:16px;" id="btn-go-replay">Recommencer une partie</button>
+            <button class="btn-action" onclick="fermerGameOverSeulement()" style="width:100%; padding:10px; font-size:13px; margin-top:10px; justify-content:center;" id="btn-go-close">Consulter le tableau</button>
+        </div>
+    </div>
+
+    <script>
+        const VEXFLOW_LANG_NOTE_NAMES_FR = ["DO", "RE", "MI", "FA", "SOL", "LA", "SI"];
+        const VEXFLOW_LANG_NOTE_NAMES_EN = ["C", "D", "E", "F", "G", "A", "B"];
+
+        const TRADUCTIONS = {
+            fr: {
+                score: "Score", combo: "Combo", temps: "Temps", precision: "Précision",
+                jouer: "Jouer", arreter: "Arrêter", config: "Configuration", historyTitle: "Historique des notes jouées",
+                modalTitle: "Paramètres de Jeu Élite", closeApply: "Fermer & Appliquer", systemSec: "Système",
+                inputSrc: "Source d'entrée", rulesSec: "Règles & Limites", limitVies: "Nombre de vies (Survie)",
+                limitTemps: "Temps alloué (Chrono)", notationType: "Notation des notes", jsonSec: "Profil de sauvegarde (JSON)",
+                jsonDesc: "Copiez ce texte pour sauvegarder ou collez-en un pour restaurer vos réglages.",
+                gclefSec: "Clé de Sol 𝄢", fclefSec: "Clé de Fa 𝄢",
+                gfac: "Facile (Lignes de la portée Do4-Sol4)", gmoy: "Moyen (Interlignes et extension Do4-Do5)", gdif: "Difficile (Lignes supplémentaires La3-Si5)", gcus: "Ambitus sur mesures",
+                ffac: "Facile (Lignes de la portée Sol2-Ré3)", fmoy: "Moyen (Interlignes et extension Fa2-Fa3)", fdif: "Difficile (Lignes supplémentaires Do2-Do5)", fcus: "Ambitus sur mesures",
+                gdeb: "Débit rythmique", fdeb: "Débit rythmique",
+                ronde: "Rondes uniquement", blanche: "Blanches", noire: "Noires", melange: "Mélange Aléatoire",
+                finTitre: "FIN DE PARTIE", goScore: "Score final", goAcc: "Précision globale", goNotes: "Notes validées", goCombo: "Plus long Combo",
+                goReplay: "Recommencer une partie", goClose: "Consulter le tableau",
+                com0: "Ne vous découragez pas, la régularité est la clé du succès !",
+                com20: "Bon début ! Concentrez-vous bien sur l'emplacement des lignes de repères.",
+                com50: "Très bon travail ! Votre lecture gagne visiblement en fluidité.",
+                com80: "Excellente performance ! Vous lisez les clés avec une grande aisance.",
+                com100: "Parfait ! Stratosphérique ! Vous êtes un lecteur hors-pair !"
+            },
+            en: {
+                score: "Score", combo: "Combo", temps: "Time", precision: "Accuracy",
+                jouer: "Play", arreter: "Stop", config: "Settings", historyTitle: "Played notes history",
+                modalTitle: "Elite Game Settings", closeApply: "Close & Apply", systemSec: "System",
+                inputSrc: "Input Source", rulesSec: "Rules & Limits", limitVies: "Lives amount (Survival)",
+                limitTemps: "Time limit (Chrono)", notationType: "Note notation", jsonSec: "Backup profile (JSON)",
+                jsonDesc: "Copy this text to save or paste one to restore your settings.",
+                gclefSec: "Treble Clef 𝄞", fclefSec: "Bass Clef 𝄢",
+                gfac: "Easy (Staff lines C4-G4)", gmoy: "Medium (Spaces and extension C4-C5)", gdif: "Hard (Ledger lines A3-B5)", gcus: "Custom Ambitus",
+                ffac: "Easy (Staff lines G2-D3)", fmoy: "Medium (Spaces and extension F2-F3)", fdif: "Hard (Ledger lines C2-C5)", fcus: "Custom Ambitus",
+                gdeb: "Rhythmic rate", fdeb: "Rhythmic rate",
+                ronde: "Whole notes only", blanche: "Half notes", noire: "Quarter notes", melange: "Random Mix",
+                finTitre: "GAME OVER", goScore: "Final Score", goAcc: "Overall Accuracy", goNotes: "Validated Notes", goCombo: "Longest Combo",
+                goReplay: "Restart Game", goClose: "Check Board",
+                com0: "Don't get discouraged, consistency is the key to success!",
+                com20: "Good start! Focus closely on the location of the reference lines.",
+                com50: "Great job! Your sight-reading is visibly becoming smoother.",
+                com80: "Excellent performance! You read the clefs with great ease.",
+                com100: "Perfect! Stratospheric! You are an outstanding reader!"
+            },
+            es: {
+                score: "Puntuación", combo: "Combo", temps: "Tiempo", precision: "Precisión",
+                jouer: "Jugar", arreter: "Parar", config: "Ajustes", historyTitle: "Historial de notas tocadas",
+                modalTitle: "Parámetros de Juego Élite", closeApply: "Cerrar y Aplicar", systemSec: "Sistema",
+                inputSrc: "Fuente de entrada", rulesSec: "Reglas y Límites", limitVies: "Cantidad de vidas (Superv.)",
+                limitTemps: "Tiempo asignado (Crono)", notationType: "Notación de notas", jsonSec: "Perfil de guardado (JSON)",
+                jsonDesc: "Copie este texto para guardar o pegue uno para restaurar sus ajustes.",
+                gclefSec: "Clave de Sol 𝄞", fclefSec: "Clave de Fa 𝄢",
+                gfac: "Fácil (Líneas del pentagrama Do4-Sol4)", gmoy: "Medio (Espacios y extensión Do4-Do5)", gdif: "Difícil (Líneas adicionales La3-Si5)", gcus: "Ámbito a medida",
+                ffac: "Fácil (Líneas del pentagrama Sol2-Re3)", fmoy: "Medio (Espacios y extensión Fa2-Fa3)", fdif: "Difícil (Líneas adicionales Do2-Do5)", fcus: "Ámbito a medida",
+                gdeb: "Ritmo rítmico", fdeb: "Ritmo rítmico",
+                ronde: "Redondas solamente", blanche: "Blancas", noire: "Negras", melange: "Mezcla Aleatoria",
+                finTitre: "FIN DE PARTIDA", goScore: "Puntuación final", goAcc: "Precisión global", goNotes: "Notas validadas", goCombo: "Combo más largo",
+                goReplay: "Reiniciar partida", goClose: "Consultar tablero",
+                com0: "¡No te desanimes, la constancia es la clave del éxito!",
+                com20: "¡Buen comienzo! Concéntrate bien en la ubicación de las líneas de referencia.",
+                com50: "¡Gran trabajo! Tu lectura se está volviendo visiblemente más fluida.",
+                com80: "¡Excelente rendimiento! Lees las claves con mucha facilidad.",
+                com100: "¡Perfecto! ¡Estratosférico! ¡Eres un lector excepcional!"
+            }
+        };
+
+        const PIANO_NOTES_DATABASE = [
+            { midi: 36, nameFr: "DO2", nameEn: "C2", isBlack: false, vexflowKey: "c/2" },
+            { midi: 37, nameFr: "DO#2", nameEn: "C#2", isBlack: true, vexflowKey: "c#/2" },
+            { midi: 38, nameFr: "RE2", nameEn: "D2", isBlack: false, vexflowKey: "d/2" },
+            { midi: 39, nameFr: "RE#2", nameEn: "D#2", isBlack: true, vexflowKey: "d#/2" },
+            { midi: 40, nameFr: "MI2", nameEn: "E2", isBlack: false, vexflowKey: "e/2" },
+            { midi: 41, nameFr: "FA2", nameEn: "F2", isBlack: false, vexflowKey: "f/2" },
+            { midi: 42, nameFr: "FA#2", nameEn: "F#2", isBlack: true, vexflowKey: "f#/2" },
+            { midi: 43, nameFr: "SOL2", nameEn: "G2", isBlack: false, vexflowKey: "g/2" },
+            { midi: 44, nameFr: "SOL#2", nameEn: "G#2", isBlack: true, vexflowKey: "g#/2" },
+            { midi: 45, nameFr: "LA2", nameEn: "A2", isBlack: false, vexflowKey: "a/2" },
+            { midi: 46, nameFr: "LA#2", nameEn: "A#2", isBlack: true, vexflowKey: "a#/2" },
+            { midi: 47, nameFr: "SI2", nameEn: "B2", isBlack: false, vexflowKey: "b/2" },
+
+            { midi: 48, nameFr: "DO3", nameEn: "C3", isBlack: false, vexflowKey: "c/3" },
+            { midi: 49, nameFr: "DO#3", nameEn: "C#3", isBlack: true, vexflowKey: "c#/3" },
+            { midi: 50, nameFr: "RE3", nameEn: "D3", isBlack: false, vexflowKey: "d/3" },
+            { midi: 51, nameFr: "RE#3", nameEn: "D#3", isBlack: true, vexflowKey: "d#/3" },
+            { midi: 52, nameFr: "MI3", nameEn: "E3", isBlack: false, vexflowKey: "e/3" },
+            { midi: 53, nameFr: "FA3", nameEn: "F3", isBlack: false, vexflowKey: "f/3" },
+            { midi: 54, nameFr: "FA#3", nameEn: "F#3", isBlack: true, vexflowKey: "f#/3" },
+            { midi: 55, nameFr: "SOL3", nameEn: "G3", isBlack: false, vexflowKey: "g/3" },
+            { midi: 56, nameFr: "SOL#3", nameEn: "G#3", isBlack: true, vexflowKey: "g#/3" },
+            { midi: 57, nameFr: "LA3", nameEn: "A3", isBlack: false, vexflowKey: "a/3" },
+            { midi: 58, nameFr: "LA#3", nameEn: "A#3", isBlack: true, vexflowKey: "a#/3" },
+            { midi: 59, nameFr: "SI3", nameEn: "B3", isBlack: false, vexflowKey: "b/3" },
+
+            { midi: 60, nameFr: "DO4", nameEn: "C4", isBlack: false, vexflowKey: "c/4" },
+            { midi: 61, nameFr: "DO#4", nameEn: "C#4", isBlack: true, vexflowKey: "c#/4" },
+            { midi: 62, nameFr: "RE4", nameEn: "D4", isBlack: false, vexflowKey: "d/4" },
+            { midi: 63, nameFr: "RE#4", nameEn: "D#4", isBlack: true, vexflowKey: "d#/4" },
+            { midi: 64, nameFr: "MI4", nameEn: "E4", isBlack: false, vexflowKey: "e/4" },
+            { midi: 65, nameFr: "FA4", nameEn: "F4", isBlack: false, vexflowKey: "f/4" },
+            { midi: 66, nameFr: "FA#4", nameEn: "F#4", isBlack: true, vexflowKey: "f#/4" },
+            { midi: 67, nameFr: "SOL4", nameEn: "G4", isBlack: false, vexflowKey: "g/4" },
+            { midi: 68, nameFr: "SOL#4", nameEn: "G#4", isBlack: true, vexflowKey: "g#/4" },
+            { midi: 69, nameFr: "LA4", nameEn: "A4", isBlack: false, vexflowKey: "a/4" },
+            { midi: 70, nameFr: "LA#4", nameEn: "A#4", isBlack: true, vexflowKey: "a#/4" },
+            { midi: 71, nameFr: "SI4", nameEn: "B4", isBlack: false, vexflowKey: "b/4" },
+
+            { midi: 72, nameFr: "DO5", nameEn: "C5", isBlack: false, vexflowKey: "c/5" },
+            { midi: 73, nameFr: "DO#5", nameEn: "C#5", isBlack: true, vexflowKey: "c#/5" },
+            { midi: 74, nameFr: "RE5", nameEn: "D5", isBlack: false, vexflowKey: "d/5" },
+            { midi: 75, nameFr: "RE#5", nameEn: "D#5", isBlack: true, vexflowKey: "d#/5" },
+            { midi: 76, nameFr: "MI5", nameEn: "E5", isBlack: false, vexflowKey: "e/5" },
+            { midi: 77, nameFr: "FA5", nameEn: "F5", isBlack: false, vexflowKey: "f/5" },
+            { midi: 78, nameFr: "FA#5", nameEn: "F#5", isBlack: true, vexflowKey: "f#/5" },
+            { midi: 79, nameFr: "SOL5", nameEn: "G5", isBlack: false, vexflowKey: "g/5" },
+            { midi: 80, nameFr: "SOL#5", nameEn: "G#5", isBlack: true, vexflowKey: "g#/5" },
+            { midi: 81, nameFr: "LA5", nameEn: "A5", isBlack: false, vexflowKey: "a/5" },
+            { midi: 82, nameFr: "LA#5", nameEn: "A#5", isBlack: true, vexflowKey: "a#/5" },
+            { midi: 83, nameFr: "SI5", nameEn: "B5", isBlack: false, vexflowKey: "b/5" }
+        ];
+
+        const CONFIG_KEYS = [
+            "cfg-game-mode", "cfg-lang", "cfg-input-source", "cfg-survie-vies", "cfg-chrono-temps", "cfg-game-notation",
+            "chk-g-facile", "chk-g-moyen", "chk-g-difficile", "chk-g-custom", "sel-g-min", "sel-g-max", "cfg-g-debit",
+            "chk-f-facile", "chk-f-moyen", "chk-f-difficile", "chk-f-custom", "sel-f-min", "sel-f-max", "cfg-f-debit"
+        ];
+
+        let gameActive = false;
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let totalNotesProposees = 0;
+        let totalNotesReussies = 0;
+        let tempsRestant = 0;
+        let compteurVies = 0;
+        let chronoIntervalId = null;
+
+        let noteActuelleEtape = null; 
+        let noteSuivanteEtape = null; 
+        let audioContextInstance = null;
+        let midiAccessObject = null;
+
+        window.addEventListener("DOMContentLoaded", () => {
+            peuplerSelectsAmbitus();
+            chargerDepuisLocalStorage();
+            construirePianoGuiVisuel();
+            initialiserMidiPhysique();
+            mettreAJourInterfaceHUD();
+            actualiserResumeString();
+        });
+
+        function changerLangue(lang) {
+            if(!TRADUCTIONS[lang]) lang = "fr";
+            document.getElementById("lbl-hud-score").innerText = TRADUCTIONS[lang].score;
+            document.getElementById("lbl-hud-combo").innerText = TRADUCTIONS[lang].combo;
+            document.getElementById("lbl-hud-time").innerText = TRADUCTIONS[lang].temps;
+            document.getElementById("lbl-hud-accuracy").innerText = TRADUCTIONS[lang].precision;
+            document.getElementById("lbl-history-title").innerText = TRADUCTIONS[lang].historyTitle;
+            document.getElementById("lbl-modal-title").innerText = TRADUCTIONS[lang].modalTitle;
+            document.getElementById("lbl-input-src").innerText = TRADUCTIONS[lang].inputSrc;
+            document.getElementById("lbl-sec-sys").innerText = TRADUCTIONS[lang].systemSec;
+            document.getElementById("lbl-sec-rules").innerText = TRADUCTIONS[lang].rulesSec;
+            document.getElementById("lbl-limit-vies").innerText = TRADUCTIONS[lang].limitVies;
+            document.getElementById("lbl-limit-temps").innerText = TRADUCTIONS[lang].limitTemps;
+            document.getElementById("lbl-notation-type").innerText = TRADUCTIONS[lang].notationType;
+            document.getElementById("lbl-sec-json").innerText = TRADUCTIONS[lang].jsonSec;
+            document.getElementById("lbl-json-desc").innerText = TRADUCTIONS[lang].jsonDesc;
+            document.getElementById("lbl-sec-gclef").innerText = TRADUCTIONS[lang].gclefSec;
+            document.getElementById("lbl-sec-fclef").innerText = TRADUCTIONS[lang].fclefSec;
+
+            document.getElementById("lbl-g-fac").innerText = TRADUCTIONS[lang].gfac;
+            document.getElementById("lbl-g-moy").innerText = TRADUCTIONS[lang].gmoy;
+            document.getElementById("lbl-g-dif").innerText = TRADUCTIONS[lang].gdif;
+            document.getElementById("lbl-g-cus").innerText = TRADUCTIONS[lang].gcus;
+
+            document.getElementById("lbl-f-fac").innerText = TRADUCTIONS[lang].ffac;
+            document.getElementById("lbl-f-moy").innerText = TRADUCTIONS[lang].fmoy;
+            document.getElementById("lbl-f-dif").innerText = TRADUCTIONS[lang].fdif;
+            document.getElementById("lbl-f-cus").innerText = TRADUCTIONS[lang].fcus;
+
+            document.getElementById("lbl-g-deb").innerText = TRADUCTIONS[lang].gdeb;
+            document.getElementById("lbl-f-deb").innerText = TRADUCTIONS[lang].fdeb;
+
+            // Options Débits
+            ["cfg-g-debit", "cfg-f-debit"].forEach(id => {
+                let s = document.getElementById(id);
+                s.options[0].text = TRADUCTIONS[lang].ronde;
+                s.options[1].text = TRADUCTIONS[lang].blanche;
+                s.options[2].text = TRADUCTIONS[lang].noire;
+                s.options[3].text = TRADUCTIONS[lang].melange;
+            });
+
+            document.getElementById("go-title").innerText = TRADUCTIONS[lang].finTitre;
+            document.getElementById("lbl-go-score").innerText = TRADUCTIONS[lang].goScore;
+            document.getElementById("lbl-go-accuracy").innerText = TRADUCTIONS[lang].goAcc;
+            document.getElementById("lbl-go-notes").innerText = TRADUCTIONS[lang].goNotes;
+            document.getElementById("lbl-go-combo").innerText = TRADUCTIONS[lang].goCombo;
+            document.getElementById("btn-go-replay").innerText = TRADUCTIONS[lang].goReplay;
+            document.getElementById("btn-go-close").innerText = TRADUCTIONS[lang].goClose;
+
+            let bStart = document.getElementById("btn-start");
+            if(bStart && bStart.innerText !== "JOUER" && bStart.innerText !== "PLAY" && bStart.innerText !== "JUGAR") {
+                bStart.innerText = TRADUCTIONS[lang].jouer;
+            }
+            let bStop = document.getElementById("btn-stop");
+            if(bStop) bStop.innerText = TRADUCTIONS[lang].arreter;
+
+            rafraichirPianoLabels();
+            actualiserResumeString();
+        }
+
+        function extraireConfigurationJson() {
+            let configObj = {};
+            CONFIG_KEYS.forEach(key => {
+                let el = document.getElementById(key);
+                if (el) {
+                    if (el.type === 'checkbox') configObj[key] = el.checked;
+                    else configObj[key] = el.value;
+                }
+            });
+            return JSON.stringify(configObj, null, 2);
+        }
+
+        function appliquerConfigurationJson(jsonStr) {
+            try {
+                let configObj = JSON.parse(jsonStr);
+                CONFIG_KEYS.forEach(key => {
+                    if (configObj[key] !== undefined && document.getElementById(key)) {
+                        let el = document.getElementById(key);
+                        if (el.type === 'checkbox') el.checked = configObj[key];
+                        else el.value = configObj[key];
+                    }
+                });
+                if(configObj["cfg-lang"]) changerLangue(configObj["cfg-lang"]);
+            } catch(e) { console.error("Erreur lors de l'application de la config", e); }
+        }
+
+        function sauvegarderDansLocalStorage() {
+            let jsonStr = extraireConfigurationJson();
+            localStorage.setItem("pianotement_config", jsonStr);
+            document.getElementById("json-config-area").value = jsonStr;
+            actualiserResumeString();
+        }
+
+        function chargerDepuisLocalStorage() {
+            let saved = localStorage.getItem("pianotement_config");
+            if(saved) {
+                appliquerConfigurationJson(saved);
+                toggleInputSource();
+                toggleCustomAmbitus();
+            } else {
+                let osLang = navigator.language || navigator.userLanguage || "fr";
+                osLang = osLang.substring(0, 2).toLowerCase();
+                if (["fr", "en", "es"].includes(osLang)) {
+                    document.getElementById("cfg-lang").value = osLang;
+                    changerLangue(osLang);
+                } else {
+                    changerLangue("fr");
+                }
+            }
+            document.getElementById("json-config-area").value = extraireConfigurationJson();
+        }
+
+        function importerJsonDepuisArea() {
+            let txt = document.getElementById("json-config-area").value;
+            if(txt && txt.trim() !== "") {
+                appliquerConfigurationJson(txt);
+                sauvegarderDansLocalStorage();
+                toggleCustomAmbitus();
+                toggleInputSource();
+                toggleGameModeGui();
+                dessinerPartitionVexflowVide();
+            }
+        }
+
+        function peuplerSelectsAmbitus() {
+            let sGMin = document.getElementById("sel-g-min");
+            let sGMax = document.getElementById("sel-g-max");
+            let sFMin = document.getElementById("sel-f-min");
+            let sFMax = document.getElementById("sel-f-max");
+
+            sGMin.innerHTML = ""; sGMax.innerHTML = "";
+            sFMin.innerHTML = ""; sFMax.innerHTML = "";
+
+            PIANO_NOTES_DATABASE.forEach(n => {
+                if(!n.isBlack) {
+                    let opt1 = new Option(n.nameFr, n.midi);
+                    let opt2 = new Option(n.nameFr, n.midi);
+                    let opt3 = new Option(n.nameFr, n.midi);
+                    let opt4 = new Option(n.nameFr, n.midi);
+
+                    sGMin.options.add(opt1);
+                    sGMax.options.add(opt2);
+                    sFMin.options.add(opt3);
+                    sFMax.options.add(opt4);
+                }
+            });
+
+            sGMin.value = "60"; 
+            sGMax.value = "79"; 
+            sFMin.value = "43"; 
+            sFMax.value = "60"; 
+        }
+
+        function toggleCustomAmbitus() {
+            let gCustom = document.getElementById("chk-g-custom").checked;
+            document.getElementById("ambitus-g-custom-selectors").style.display = gCustom ? "flex" : "none";
+
+            let fCustom = document.getElementById("chk-f-custom").checked;
+            document.getElementById("ambitus-f-custom-selectors").style.display = fCustom ? "flex" : "none";
+        }
+
+        function toggleInputSource() {
+            let src = document.getElementById("cfg-input-source").value;
+            let pContainer = document.getElementById("piano-container");
+            if(src === "gui") {
+                pContainer.style.opacity = "1";
+                pContainer.style.pointerEvents = "auto";
+            } else {
+                pContainer.style.opacity = "0.4";
+                pContainer.style.pointerEvents = "none";
+            }
+        }
+
+        function toggleGameModeGui() {
+            let m = document.getElementById("cfg-game-mode").value;
+            if(m === "melodie") {
+                document.getElementById("card-hud-time").style.display = "none";
+                document.getElementById("card-hud-combo").style.display = "block";
+                document.getElementById("group-survie-vies").style.display = "none";
+                document.getElementById("group-chrono-temps").style.display = "none";
+            } else if(m === "survie") {
+                document.getElementById("card-hud-time").style.display = "none";
+                document.getElementById("card-hud-combo").style.display = "block";
+                document.getElementById("group-survie-vies").style.display = "flex";
+                document.getElementById("group-chrono-temps").style.display = "none";
+            } else if(m === "chrono") {
+                document.getElementById("card-hud-time").style.display = "block";
+                document.getElementById("card-hud-combo").style.display = "block";
+                document.getElementById("group-survie-vies").style.display = "none";
+                document.getElementById("group-chrono-temps").style.display = "flex";
+            }
+            actualiserResumeString();
+        }
+
+        function ouvrirConfiguration() {
+            document.getElementById("config-modal").classList.add("active");
+        }
+        function fermerConfiguration() {
+            document.getElementById("config-modal").classList.remove("active");
+            dessinerDeuxNotesVexflow(noteActuelleEtape, noteSuivanteEtape);
+        }
+        function fermerConfigurationParOverlay(e) {
+            if(e.target === document.getElementById("config-modal")) {
+                fermerConfiguration();
+            }
+        }
+
+        function actualiserResumeString() {
+            let lang = document.getElementById("cfg-lang").value;
+            let mode = document.getElementById("cfg-game-mode").value;
+            let src = document.getElementById("cfg-input-source").value;
+            let txt = `Mode: ${mode.toUpperCase()} | Source: ${src.toUpperCase()}`;
+            document.getElementById("config-summary").innerText = txt;
+        }
+
+        function construirePianoGuiVisuel() {
+            let container = document.getElementById("piano-container");
+            container.innerHTML = "";
+            PIANO_NOTES_DATABASE.forEach(n => {
+                let div = document.createElement("div");
+                div.className = "piano-key " + (n.isBlack ? "black" : "white");
+                div.dataset.midi = n.midi;
+                
+                let lbl = document.createElement("span");
+                lbl.className = "key-label";
+                div.appendChild(lbl);
+
+                div.addEventListener("mousedown", () => handleAppuiNoteMidiFiltre(n.midi, true));
+                div.addEventListener("mouseup", () => handleAppuiNoteMidiFiltre(n.midi, false));
+                div.addEventListener("mouseleave", () => handleAppuiNoteMidiFiltre(n.midi, false));
+
+                container.appendChild(div);
+            });
+            rafraichirPianoLabels();
+        }
+
+        function rafraichirPianoLabels() {
+            let notation = document.getElementById("cfg-game-notation").value;
+            let keys = document.querySelectorAll(".piano-key");
+            keys.forEach(k => {
+                let midi = parseInt(k.dataset.midi);
+                let dbNote = PIANO_NOTES_DATABASE.find(x => x.midi === midi);
+                let lblSpan = k.querySelector(".key-label");
+                if(dbNote && lblSpan) {
+                    lblSpan.innerText = (notation === "fr") ? dbNote.nameFr : dbNote.nameEn;
+                }
+            });
+        }
+
+        function initialiserMidiPhysique() {
+            if (navigator.requestMIDIAccess) {
+                navigator.requestMIDIAccess().then(
+                    access => {
+                        midiAccessObject = access;
+                        document.getElementById("midi-dot").classList.add("connected");
+                        let inputs = midiAccessObject.inputs.values();
+                        for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+                            input.value.onmidimessage = écouterMessagesMidiEntrants;
+                        }
+                        midiAccessObject.onstatechange = (e) => {
+                            if(e.port.type === "input") {
+                                if(e.port.state === "connected") {
+                                    e.port.onmidimessage = écouterMessagesMidiEntrants;
+                                    document.getElementById("midi-dot").classList.add("connected");
+                                } else {
+                                    document.getElementById("midi-dot").classList.remove("connected");
+                                }
+                            }
+                        };
+                    },
+                    () => { console.warn("Accès MIDI refusé ou indisponible."); }
+                );
+            }
+        }
+
+        function écouterMessagesMidiEntrants(msg) {
+            let cmd = msg.data[0] >> 4;
+            let note = msg.data[1];
+            let velocity = (msg.data.length > 2) ? msg.data[2] : 0;
+            if (cmd === 9 && velocity > 0) {
+                handleAppuiNoteMidiFiltre(note, true);
+            } else if (cmd === 8 || (cmd === 9 && velocity === 0)) {
+                handleAppuiNoteMidiFiltre(note, false);
+            }
+        }
+
+        function handleAppuiNoteMidiFiltre(midi, isDown) {
+            let keyEl = document.querySelector(`.piano-key[data-midi='${midi}']`);
+            let dbNote = PIANO_NOTES_DATABASE.find(x => x.midi === midi);
+            if(!dbNote) return;
+
+            if(isDown) {
+                if(keyEl) keyEl.classList.add(dbNote.isBlack ? "active-gui-black" : "active-gui-white");
+                declencherAudioNote(midi);
+                if(gameActive) {
+                    verifierNoteJoueeDansLeJeu(dbNote);
+                }
+            } else {
+                if(keyEl) keyEl.classList.remove("active-gui-black", "active-gui-white");
+            }
+        }
+
+        function declencherAudioNote(midi) {
+            try {
+                if(!audioContextInstance) audioContextInstance = new (window.AudioContext || window.webkitAudioContext)();
+                let freq = 440 * Math.pow(2, (midi - 69) / 12);
+                let osc = audioContextInstance.createOscillator();
+                let gain = audioContextInstance.createGain();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(freq, audioContextInstance.currentTime);
+                gain.gain.setValueAtTime(0.25, audioContextInstance.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioContextInstance.currentTime + 0.6);
+                osc.connect(gain);
+                gain.connect(audioContextInstance.destination);
+                osc.start();
+                osc.stop(audioContextInstance.currentTime + 0.6);
+            } catch(e){}
+        }
+
+        function calculerFiltreAmbitusNotes() {
+            let poolSol = [];
+            let poolFa = [];
+
+            // Clé de Sol
+            if (document.getElementById("chk-g-custom").checked) {
+                let min = parseInt(document.getElementById("sel-g-min").value);
+                let max = parseInt(document.getElementById("sel-g-max").value);
+                PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= min && n.midi <= max) poolSol.push({...n, clef:"treble"}); });
+            } else {
+                if (document.getElementById("chk-g-facile").checked) {
+                    PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= 60 && n.midi <= 67) poolSol.push({...n, clef:"treble"}); });
+                }
+                if (document.getElementById("chk-g-moyen").checked) {
+                    PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= 60 && n.midi <= 72) poolSol.push({...n, clef:"treble"}); });
+                }
+                if (document.getElementById("chk-g-difficile").checked) {
+                    PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= 57 && n.midi <= 83) poolSol.push({...n, clef:"treble"}); });
+                }
+            }
+
+            // Clé de Fa
+            if (document.getElementById("chk-f-custom").checked) {
+                let min = parseInt(document.getElementById("sel-f-min").value);
+                let max = parseInt(document.getElementById("sel-f-max").value);
+                PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= min && n.midi <= max) poolFa.push({...n, clef:"bass"}); });
+            } else {
+                if (document.getElementById("chk-f-facile").checked) {
+                    PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= 43 && n.midi <= 50) poolFa.push({...n, clef:"bass"}); });
+                }
+                if (document.getElementById("chk-f-moyen").checked) {
+                    PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= 41 && n.midi <= 53) poolFa.push({...n, clef:"bass"}); });
+                }
+                if (document.getElementById("chk-f-difficile").checked) {
+                    PIANO_NOTES_DATABASE.forEach(n => { if(!n.isBlack && n.midi >= 36 && n.midi <= 72) poolFa.push({...n, clef:"bass"}); });
+                }
+            }
+
+            // Unique par MIDI par clé
+            let MapSol = {}, MapFa = {};
+            poolSol.forEach(x => MapSol[x.midi] = x);
+            poolFa.forEach(x => MapFa[x.midi] = x);
+
+            return { sol: Object.values(MapSol), fa: Object.values(MapFa) };
+        }
+
+        function piocherUneNoteAleatoireFiltree() {
+            let pools = calculerFiltreAmbitusNotes();
+            let finalPool = [];
+            finalPool = finalPool.concat(pools.sol).concat(pools.fa);
+
+            if(finalPool.length === 0) {
+                return { midi: 60, nameFr: "DO4", nameEn: "C4", isBlack: false, vexflowKey: "c/4", clef: "treble", duration: "w" };
+            }
+
+            let bris = finalPool[Math.floor(Math.random() * finalPool.length)];
+            let debitType = (bris.clef === "treble") ? document.getElementById("cfg-g-debit").value : document.getElementById("cfg-f-debit").value;
+            
+            let dur = "w";
+            if(debitType === "blanche") dur = "h";
+            else if(debitType === "noire") dur = "q";
+            else if(debitType === "melange") {
+                let r = Math.random();
+                if(r < 0.33) dur = "w";
+                else if(r < 0.66) dur = "h";
+                else dur = "q";
+            }
+
+            return { ...bris, duration: dur };
+        }
+
+        function dessinerPartitionVexflowVide() {
+            let area = document.getElementById("notation-render-area");
+            area.innerHTML = "";
+            let renderer = new Vex.Flow.Renderer(area, Vex.Flow.Renderer.Backends.SVG);
+            renderer.resize(450, 150);
+            let context = renderer.getContext();
+            context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
+
+            let system = new Vex.Flow.System();
+            system.setContext(context).setOptions({ x: 20, y: 15, width: 400 });
+            
+            let staff = system.addStave({
+                staveProfile: Vex.Flow.StaveProfile.TREBLE
+            });
+            staff.addClef("treble").addTimeSignature("4/4");
+            system.draw();
+        }
+
+        function dessinerDeuxNotesVexflow(nAct, nSuiv) {
+            let area = document.getElementById("notation-render-area");
+            area.innerHTML = "";
+            if(!nAct) return;
+
+            let renderer = new Vex.Flow.Renderer(area, Vex.Flow.Renderer.Backends.SVG);
+            renderer.resize(500, 160);
+            let context = renderer.getContext();
+
+            let system = new Vex.Flow.System();
+            system.setContext(context).setOptions({ x: 30, y: 15, width: 430 });
+
+            let profileStr = (nAct.clef === "bass") ? Vex.Flow.StaveProfile.BASS : Vex.Flow.StaveProfile.TREBLE;
+            let stave = system.addStave({ staveProfile: profileStr });
+            stave.addClef(nAct.clef).addTimeSignature("4/4");
+
+            // Note active
+            let vfNoteAct = new Vex.Flow.StaveNote({
+                clef: nAct.clef,
+                keys: [nAct.vexflowKey],
+                duration: nAct.duration
+            });
+            vfNoteAct.setStyle({ fillStyle: "#111", strokeStyle: "#111" });
+
+            // Note suivante (Grisée en aperçu)
+            let vfNoteSuiv = null;
+            if(nSuiv && nSuiv.clef === nAct.clef) {
+                vfNoteSuiv = new Vex.Flow.StaveNote({
+                    clef: nSuiv.clef,
+                    keys: [nSuiv.vexflowKey],
+                    duration: nSuiv.duration
+                });
+                vfNoteSuiv.setStyle({ fillStyle: "#999999", strokeStyle: "#bbbbbb" });
+            }
+
+            let voicesList = [];
+            let notesArray = [vfNoteAct];
+            if(vfNoteSuiv) notesArray.push(vfNoteSuiv);
+
+            let voice = new Vex.Flow.Voice({ num_beats: 4, beat_value: 4 }).setMode(Vex.Flow.Voice.Mode.SOFT);
+            voice.addTickables(notesArray);
+            voicesList.push(voice);
+
+            system.addVoices(voicesList);
+            system.draw();
+        }
+
+        function demarrerPartie() {
+            if(gameActive) return;
+
+            let pools = calculerFiltreAmbitusNotes();
+            if(pools.sol.length === 0 && pools.fa.length === 0) {
+                let lang = document.getElementById("cfg-lang").value;
+                alert(lang === "fr" ? "Veuillez cocher au moins une clé active !" : (lang === "es" ? "¡Por favor, active al menos una clave!" : "Please check at least one active clef!"));
+                ouvrirConfiguration();
+                return;
+            }
+
+            gameActive = true;
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            totalNotesProposees = 0;
+            totalNotesReussies = 0;
+            document.getElementById("history-list").innerHTML = "";
+
+            let mode = document.getElementById("cfg-game-mode").value;
+            document.getElementById("btn-start").style.display = "none";
+            document.getElementById("btn-stop").style.display = "inline-block";
+
+            if(mode === "survie") {
+                compteurVies = parseInt(document.getElementById("cfg-survie-vies").value);
+            } else if(mode === "chrono") {
+                tempsRestant = parseInt(document.getElementById("cfg-chrono-temps").value);
+                lancerChronoGlobal();
+            }
+
+            noteActuelleEtape = piocherUneNoteAleatoireFiltree();
+            noteSuivanteEtape = piocherUneNoteAleatoireFiltree();
+
+            mettreAJourInterfaceHUD();
+            dessinerDeuxNotesVexflow(noteActuelleEtape, noteSuivanteEtape);
+        }
+
+        function stopperPartie() {
+            if(!gameActive) return;
+            gameActive = false;
+            clearInterval(chronoIntervalId);
+
+            document.getElementById("btn-start").style.display = "inline-block";
+            document.getElementById("btn-stop").style.display = "none";
+            
+            dessinerPartitionVexflowVide();
+            actualiserResumeString();
+        }
+
+        function lancerChronoGlobal() {
+            clearInterval(chronoIntervalId);
+            chronoIntervalId = setInterval(() => {
+                if(!gameActive) { clearInterval(chronoIntervalId); return; }
+                tempsRestant--;
+                if(tempsRestant <= 0) {
+                    tempsRestant = 0;
+                    mettreAJourInterfaceHUD();
+                    declencherFinDePartieEpic();
+                } else {
+                    mettreAJourInterfaceHUD();
+                }
+            }, 1000);
+        }
+
+        function verifierNoteJoueeDansLeJeu(dbNoteAppuyee) {
+            totalNotesProposees++;
+            let estCorrect = (dbNoteAppuyee.midi === noteActuelleEtape.midi);
+            
+            creerPopUpPointsArcade(estCorrect);
+            ajouterNoteA_HistoriqueBadge(noteActuelleEtape, estCorrect);
+            flashVisuelCleClavier(dbNoteAppuyee.midi, estCorrect);
+
+            let mode = document.getElementById("cfg-game-mode").value;
+
+            if(estCorrect) {
+                totalNotesReussies++;
+                combo++;
+                if(combo > maxCombo) maxCombo = combo;
+                score += 10 + Math.floor(combo / 5) * 5; 
+            } else {
+                combo = 0;
+                if(mode === "survie") {
+                    compteurVies--;
+                    if(compteurVies <= 0) {
+                        compteurVies = 0;
+                        mettreAJourInterfaceHUD();
+                        declencherFinDePartieEpic();
+                        return;
+                    }
+                }
+            }
+
+            mettreAJourInterfaceHUD();
+
+            if(gameActive) {
+                noteActuelleEtape = noteSuivanteEtape;
+                noteSuivanteEtape = piocherUneNoteAleatoireFiltree();
+                dessinerDeuxNotesVexflow(noteActuelleEtape, noteSuivanteEtape);
+            }
+        }
+
+        function flashVisuelCleClavier(midi, estCorrect) {
+            let keyEl = document.querySelector(`.piano-key[data-midi='${midi}']`);
+            if(!keyEl) return;
+            let dbNote = PIANO_NOTES_DATABASE.find(x => x.midi === midi);
+            let cls = estCorrect ? (dbNote.isBlack ? "correct-flash-black" : "correct-flash-white") : (dbNote.isBlack ? "error-flash-black" : "error-flash-white");
+            keyEl.classList.add(cls);
+            setTimeout(() => { keyEl.classList.remove(cls); }, 250);
+        }
+
+        function ajouterNoteA_HistoriqueBadge(noteObj, estCorrect) {
+            let notation = document.getElementById("cfg-game-notation").value;
+            let list = document.getElementById("history-list");
+            let badge = document.createElement("span");
+            badge.className = "history-badge " + (estCorrect ? "correct" : "wrong");
+            badge.innerText = (notation === "fr" ? noteObj.nameFr : noteObj.nameEn) + (noteObj.clef === "bass" ? " (𝄢)" : " (𝄞)");
+            list.insertBefore(badge, list.firstChild);
+            if(list.children.length > 25) { list.removeChild(list.lastChild); }
+        }
+
+        function creerPopUpPointsArcade(estCorrect) {
+            let wrapper = document.getElementById("notation-wrapper");
+            let popup = document.createElement("div");
+            popup.className = "arcade-score-popup";
+            popup.style.left = "50%";
+            popup.style.top = "40%";
+            if(estCorrect) {
+                popup.innerText = `+${10 + Math.floor(combo / 5) * 5}`;
+                popup.style.color = "#00ffcc";
+            } else {
+                popup.innerText = "MISS";
+                popup.style.color = "#ff416c";
+            }
+            wrapper.appendChild(popup);
+            setTimeout(() => { popup.remove(); }, 600);
+        }
+
+        function mettreAJourInterfaceHUD() {
+            document.getElementById("hud-score").innerText = score;
+            
+            let mode = document.getElementById("cfg-game-mode").value;
+            if(mode === "survie") {
+                document.getElementById("hud-combo").innerText = "♥ " + compteurVies;
+                document.getElementById("hud-combo").style.color = "#ff416c";
+            } else {
+                document.getElementById("hud-combo").innerText = "x" + combo;
+                document.getElementById("hud-combo").style.color = "#ff007f";
+            }
+
+            document.getElementById("hud-time").innerText = tempsRestant + "s";
+
+            let acc = 100;
+            if(totalNotesProposees > 0) {
+                acc = Math.round((totalNotesReussies / totalNotesProposees) * 100);
+            }
+            document.getElementById("hud-accuracy").innerText = acc + "%";
+        }
+
+        function declencherFinDePartieEpic() {
+            gameActive = false;
+            clearInterval(chronoIntervalId);
+            document.getElementById("btn-start").style.display = "inline-block";
+            document.getElementById("btn-stop").style.display = "none";
+
+            let acc = 100;
+            if(totalNotesProposees > 0) acc = Math.round((totalNotesReussies / totalNotesProposees) * 100);
+
+            document.getElementById("go-score").innerText = score;
+            document.getElementById("go-accuracy").innerText = acc + "%";
+            document.getElementById("go-notes").innerText = `${totalNotesReussies} / ${totalNotesProposees}`;
+            document.getElementById("go-combo").innerText = "x" + maxCombo;
+
+            let lang = document.getElementById("cfg-lang").value;
+            let comStr = TRADUCTIONS[lang].com0;
+            if(score >= 100) comStr = TRADUCTIONS[lang].com100;
+            else if(score >= 80) comStr = TRADUCTIONS[lang].com80;
+            else if(score >= 50) comStr = TRADUCTIONS[lang].com50;
+            else if(score >= 20) comStr = TRADUCTIONS[lang].com20;
+
+            document.getElementById("go-comment").innerText = `"${comStr}"`;
+            document.getElementById("game-over-modal").classList.add("active");
+            dessinerPartitionVexflowVide();
+        }
+
+        function fermerGameOverSeulement() {
+            document.getElementById("game-over-modal").classList.remove("active");
+        }
+
+        function fermerGameOverEtRejouer() {
+            document.getElementById("game-over-modal").classList.remove("active");
+            demarrerPartie();
+        }
+    </script>
+</body>
+</html>
