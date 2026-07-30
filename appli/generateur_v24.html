@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Le Studio de Leçons MIDI - Séquenceur Pianotement v20</title>
+<title>Le Studio de Leçons MIDI - Séquenceur Pianotement v24</title>
 <style>
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e272e; color: #f5f6fa; margin: 0; padding: 20px; }
   
@@ -19,7 +19,7 @@
   
   /* Onglets Saisie */
   .tab-container { display: flex; gap: 10px; margin-bottom: 10px; border-bottom: 2px solid #353b48; padding-bottom: 10px; }
-  .tab-btn { flex: 1; padding: 12px; font-weight: bold; font-size: 14px; border-radius: 6px; cursor: pointer; background: #353b48; color: #dcdde1; border: none; transition: background 0.2s; }
+  .tab-btn { flex: 1; padding: 12px; font-weight: bold; font-size: 14px; border-radius: 6px; cursor: pointer; background: #353b48; color: #dcdde1; border: none; transition: background 0.2s; user-select: none; }
   .tab-btn.active { background: #3498db; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
   
   label { display: block; margin-top: 5px; font-weight: bold; color: #dcdde1; }
@@ -61,39 +61,75 @@
   .midi-status-bar { display: flex; justify-content: space-between; align-items: center; background: #0f1318; padding: 10px; border-radius: 4px; font-weight: bold; }
   .midi-btn-group { display: flex; gap: 8px; }
   .midi-btn-group button { flex: 1; padding: 10px; font-size: 13px; font-weight: bold; cursor: pointer; color: white; }
+
+  .midi-tolerance-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #1b222a; padding: 8px 12px; border-radius: 4px; }
+  .midi-tolerance-row label { margin: 0; font-size: 13px; color: #dcdde1; font-weight: bold; cursor: help; }
+  .midi-tolerance-row input[type="number"] { width: 65px; padding: 6px; border-radius: 4px; border: none; font-size: 14px; box-sizing: border-box; text-align: center; }
   
   @keyframes recordBlink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
   .recording-indicator { display: none; background: #e74c3c; color: #fff; text-align: center; padding: 10px; border-radius: 4px; font-weight: bold; animation: recordBlink 1.2s infinite; border: 1px dashed #ffffcc; }
 
   /* ÉDITEUR DE TEXTE */
-  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; background: #222f3e; padding: 8px; border-radius: 6px 6px 0 0; border-bottom: 2px solid #1e272e; align-items: center; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; background: #222f3e; padding: 8px; border-radius: 6px 6px 0 0; border-bottom: 2px solid #1e272e; align-items: center; position: sticky; top: 0; z-index: 30; box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
   .toolbar button { background: #353b48; color: white; min-width: 38px; height: 35px; font-weight: bold; cursor: pointer; font-size: 14px; padding: 5px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
   .toolbar button:hover { background: #00d2d3; color: #2f3640; }
   .toolbar .separator { color: #576574; margin: 0 4px; font-weight: bold; user-select: none; }
   
-  /* Styles ajoutés pour les nouveaux contrôles de la toolbar */
   .toolbar select { background: #353b48; color: white; border: 1px solid #576574; border-radius: 4px; padding: 5px; cursor: pointer; font-size: 14px; height: 35px; }
   .toolbar select:hover { background: #00d2d3; color: #2f3640; }
   .toolbar input[type="color"] { background: transparent; border: none; cursor: pointer; height: 30px; width: 30px; padding: 0; }
   
-  .editor { background: #f5f6fa; color: #2f3640; min-height: 380px; padding: 15px; border-radius: 0 0 6px 6px; font-family: 'Segoe UI', sans-serif; font-size: 16px; outline: none; overflow-y: auto; line-height: 1.5; }
+  .editor { background: #f5f6fa; color: #2f3640; min-height: 500px; max-height: 70vh; padding: 15px; border-radius: 0 0 6px 6px; font-family: 'Segoe UI', sans-serif; font-size: 16px; outline: none; overflow-y: auto; line-height: 1.5; }
   
   /* Balises Claviers Déplaçables */
-  .pattern-marker { background: #3498db; color: white; padding: 12px 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin: 15px 0; border: 2px solid #2980b9; box-sizing: border-box; cursor: grab; user-select: none; }
-  .pattern-marker:active { cursor: grabbing; opacity: 0.6; }
-  .pattern-marker.dragging { opacity: 0.4; border: 2px dashed #ffffcc; }
+  .pattern-marker { background: #dcdde1; color: #2f3640; padding: 10px; border-radius: 8px; display: block; margin: 20px 0; border: 2px solid #bdc3c7; box-sizing: border-box; cursor: grab; user-select: none; position: relative;}
+  .pattern-marker:active { cursor: grabbing; opacity: 0.8; }
+  .pattern-marker.dragging { opacity: 0.4; border: 2px dashed #3498db; }
   
-  .marker-title { font-size: 14px; pointer-events: none; }
-  .marker-title small { display: block; color: #dff9fb; font-weight: normal; margin-top: 2px; pointer-events: none; }
-  .marker-ctrls button { background: #ee5253; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+  .marker-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #bdc3c7; padding-bottom: 8px; pointer-events: none;}
+  .marker-title { font-size: 16px; color: #2c3e50;}
+  .marker-title small { display: block; color: #7f8c8d; font-weight: normal; margin-top: 2px; font-size: 12px;}
+  .marker-ctrls { pointer-events: auto; }
+  .marker-ctrls button { background: #ee5253; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
 
-  button.btn-generate { background: #2e86de; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 18px; padding: 15px; }
+  button.btn-generate { background: #2e86de; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 18px; padding: 15px; width: 100%;}
+
+  /* =========================================
+     STYLES GLOBAUX DU PIANO
+     ========================================= */
+  .piano-container { background: #1b222a; padding: 25px; border-radius: 12px; border: 1px solid #232d38; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin: 10px 0; pointer-events: auto;}
+  .piano-container h4 { margin-top: 0; color: #ffffff; font-size: 20px; margin-bottom: 20px; font-family: 'Segoe UI', sans-serif;}
+  .piano-wrapper { overflow-x: auto; padding: 12px; background: #0f1318; border-radius: 8px; margin-bottom: 12px; }
+  
+  .piano { position: relative; height: 220px; margin: 0 auto; }
+  .key { position: absolute; top: 0; border: 1px solid #1a1a1a; border-radius: 0 0 6px 6px; box-sizing: border-box; cursor: pointer; }
+  .key.white { background: #fdfdfd; z-index: 1; box-shadow: inset 0 -8px 5px rgba(0,0,0,0.15); }
+  .key.black { background: #161616; z-index: 2; box-shadow: inset 0 -4px 4px rgba(255,255,255,0.15); }
+  
+  .key.white.remanence, .key.black.remanence { background: #1dd1a1 !important; border-bottom: 4px solid #10ac84; }
+  
+  .key.white.active { background: #2e86de !important; border-bottom: 4px solid #00ffff; }
+  .key.black.active { background: #1b4f72 !important; border-bottom: 4px solid #00ffff; }
+  
+  .finger { position: absolute; bottom: 18px; left: 0; width: 100%; text-align: center; font-weight: bold; font-size: 20px; color: #ffffff; pointer-events: none; opacity: 0; text-shadow: 1px 1px 2px black;}
+  .finger.active-text { opacity: 1; }
+  .key.black .finger { color: #f1c40f; bottom: 12px; }
+  
+  .sustain-pedal-zone { display: flex; justify-content: center; margin-top: 5px; margin-bottom: 20px; }
+  .sustain-pedal-badge { background: #1a2228; color: #4b5563; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; padding: 8px 40px; border-radius: 4px; border: 1px solid #2e3a46; transition: all 0.15s ease; opacity: 0.6; user-select: none;}
+  .sustain-pedal-badge.pedal-on { background: #f39c12; color: #14191f; border-color: #f1c40f; box-shadow: 0 0 15px rgba(241, 196, 15, 0.5); opacity: 1; font-weight: 900; }
+
+  .controls { display: flex; justify-content: center; gap: 15px; }
+  .controls button { font-family: inherit; font-weight: bold; border: none; padding: 10px 20px; font-size: 14px; border-radius: 6px; cursor: pointer; color: white;}
+  .btn-play { background: #10ac84; }
+  .btn-pause { background: #f39c12; }
+  .btn-reset { background: #576574; }
 </style>
 </head>
 <body>
 
 <div class="header-generateur">
-  <h1>🎹 Éditeur de Leçon Interactive - Pianotement v19</h1>
+  <h1>🎹 Éditeur de Leçon Interactive - Pianotement v24</h1>
   <a href="https://www.youtube.com/@pianotement" target="_blank" class="btn-youtube">▶ Chaîne YouTube</a>
 </div>
 
@@ -130,6 +166,10 @@
           <button id="btnMidiFixe" style="background:#f39c12;" onclick="gererEnregistrementMidi('fixe')">⏸️ Tempo Fixe</button>
           <button id="btnMidiSchema" style="background:#9b59b6;" onclick="gererEnregistrementMidi('fixed')">🖼️ Schéma / Accords</button>
         </div>
+        <div class="midi-tolerance-row">
+          <label for="midiToleranceInput" title="Durée après la 1ère note d'un groupe pendant laquelle les notes suivantes sont encore considérées comme jouées « en même temps » (un accord). Baissez cette valeur si des traits rapides sont captés comme un seul bloc. Montez-la si vos accords se scindent en plusieurs étapes.">🎯 Tolérance accord (ms) :</label>
+          <input type="number" id="midiToleranceInput" value="40" min="10" max="150" step="5">
+        </div>
         <div id="indicatorRec" class="recording-indicator">
           ● ENREGISTREMENT MIDI EN COURS...<br><small>Appuyez sur ESPACE ou re-cliquez pour terminer</small>
         </div>
@@ -148,14 +188,14 @@
 
     <div class="checkbox-container">
       <div class="checkbox-group"><input type="checkbox" id="remanenceInput"><label for="remanenceInput">Rémanence (Empreinte globale)</label></div>
-      <div class="checkbox-group" id="sustainGroupRow"><input type="checkbox" id="sustainInput" checked><label for="sustainInput">Sustain (Son continu fluide)</label></div>
+      <div class="checkbox-group" id="sustainGroupRow"><input type="checkbox" id="sustainInput"><label for="sustainInput">Forcer le Sustain (Si absence de pédale physique)</label></div>
     </div>
 
     <button class="btn-insert" onclick="insererDansCours()">⬇️ ENVOYER CE CLAVIER DANS LE COURS ⬇️</button>
   </div>
   
   <div class="panel panel-right">
-    <h2>2. Rédiger la Leçon (Éditeur)</h2>
+    <h2>2. Rédiger la Leçon (Éditeur Live)</h2>
     
     <label>Titre de la leçon :</label>
     <input type="text" id="titreLecon" value="Ma Leçon Interactive">
@@ -165,11 +205,8 @@
       <button onclick="document.execCommand('bold', false, null)" title="Gras"><b>B</b></button>
       <button onclick="document.execCommand('italic', false, null)" style="font-style: italic;" title="Italique">I</button>
       <button onclick="document.execCommand('underline', false, null)" style="text-decoration: underline;" title="Souligné">U</button>
-      
       <span class="separator">|</span>
-      
       <input type="color" id="textColorPicker" title="Couleur du texte" onchange="document.execCommand('foreColor', false, this.value)">
-      
       <select id="fontSizePicker" onchange="changerTaillePolice(this.value)" title="Taille de police">
         <option value="">Taille</option>
         <option value="12">12px</option>
@@ -181,7 +218,6 @@
         <option value="28">28px</option>
         <option value="36">36px</option>
       </select>
-      
       <select id="fontFamilyPicker" onchange="document.execCommand('fontName', false, this.value); this.value='';" title="Police">
         <option value="">Police</option>
         <option value="Segoe UI">Segoe UI</option>
@@ -190,25 +226,18 @@
         <option value="Times New Roman">Times New Roman</option>
         <option value="Courier New">Courier New</option>
       </select>
-      
       <span class="separator">|</span>
-      
       <button onclick="document.execCommand('formatBlock', false, 'H3')" title="Titre de section">Titre</button>
       <button onclick="document.execCommand('formatBlock', false, 'P')" title="Texte Normal">Texte</button>
-      
       <span class="separator">|</span>
-      
       <button onclick="document.execCommand('justifyLeft', false, null)" title="Aligner à gauche">←</button>
       <button onclick="document.execCommand('justifyCenter', false, null)" title="Centrer la ligne">↔</button>
-
       <span class="separator">|</span>
-
       <button onclick="insererImageGithub()" title="Insérer une image depuis le répertoire Github" style="background:#f39c12; color:#14191f;">🖼️ Image</button>
-
     </div>
     <div id="lessonEditor" class="editor" contenteditable="true">
       <h3>Bienvenue !</h3>
-      <p>Rédigez votre cours ici et incorporez vos schémas.</p>
+      <p>Rédigez votre cours ici. Les claviers s'afficheront directement pour pouvoir les tester.</p>
       <p><br></p>
     </div>
 
@@ -223,6 +252,155 @@
   const notesBase = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const notesTrad = {'C':'Do', 'C#':'Do#', 'D':'Ré', 'D#':'Ré#', 'E':'Mi', 'F':'Fa', 'F#':'Fa#', 'G':'Sol', 'G#':'Sol#', 'A':'La', 'A#':'La#', 'B':'Si'};
   
+  const notesDefMain = [
+    { n: 'C', t: 'white' }, { n: 'C#', t: 'black' }, { n: 'D', t: 'white' }, { n: 'D#', t: 'black' },
+    { n: 'E', t: 'white' }, { n: 'F', t: 'white' }, { n: 'F#', t: 'black' }, { n: 'G', t: 'white' },
+    { n: 'G#', t: 'black' }, { n: 'A', t: 'white' }, { n: 'A#', t: 'black' }, { n: 'B', t: 'white' }
+  ];
+
+  let sequenceCourante = [];
+  let claviersDeLaLecon = [];
+  let modeSaisieActuel = 'manuel'; 
+  let currentSustainPedalState = false;
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  let liveAudioCtx = null;
+  let liveReverbNode = null;
+  let liveMasterCompressor = null;
+  let liveMasterLimiter = null;
+  let liveMasterGain = null;
+
+  function creerCourbeLimiteur(seuil, margeHeadroom) {
+    // Waveshaper de sécurité : identité (transparent) sous le seuil, puis courbe en tangente
+    // hyperbolique au-delà pour approcher le plafond en douceur, sans jamais le dépasser.
+    // Contrairement au "mur" brutal du système Android/iOS, ce plafonnage est progressif
+    // et ne colore donc pas le son tant qu'on reste sous le seuil.
+    const nbEchantillons = 1024;
+    const courbe = new Float32Array(nbEchantillons);
+    for (let i = 0; i < nbEchantillons; i++) {
+      const x = (i / (nbEchantillons - 1)) * 2 - 1;
+      const ax = Math.abs(x);
+      const signe = x < 0 ? -1 : 1;
+      courbe[i] = ax <= seuil ? x : signe * (seuil + margeHeadroom * Math.tanh((ax - seuil) / margeHeadroom));
+    }
+    return courbe;
+  }
+
+  function initLiveAudioEngine() {
+    if (liveAudioCtx) return;
+    liveAudioCtx = new AudioContextClass();
+    
+    // BUS MASTER POUR ÉVITER LE CLIPPING SUR MOBILE/TABLETTE
+    liveMasterGain = liveAudioCtx.createGain();
+    liveMasterGain.gain.value = 0.7; 
+    
+    liveMasterCompressor = liveAudioCtx.createDynamicsCompressor();
+    liveMasterCompressor.threshold.value = -8; // Intervient plus tôt (-6 → -8)
+    liveMasterCompressor.knee.value = 6; // Transition plus nette vers la limitation
+    liveMasterCompressor.ratio.value = 20; // Maximum de l'API = quasi hard-limit
+    liveMasterCompressor.attack.value = 0.003;
+    liveMasterCompressor.release.value = 0.2;
+
+    // LIMITEUR FINAL (garde-fou mathématique) : si une crête très brève (accord dense) passe
+    // plus vite que ce que le compresseur peut rattraper, ce nœud garantit malgré tout
+    // qu'aucun échantillon envoyé au haut-parleur ne peut dépasser le seuil de clipping.
+    liveMasterLimiter = liveAudioCtx.createWaveShaper();
+    liveMasterLimiter.curve = creerCourbeLimiteur(0.8, 0.18);
+    
+    liveMasterGain.connect(liveMasterCompressor);
+    liveMasterCompressor.connect(liveMasterLimiter);
+    liveMasterLimiter.connect(liveAudioCtx.destination);
+
+    // OPTIMISATION REVERB POUR CPU TABLETTE
+    const sampleRate = liveAudioCtx.sampleRate;
+    const reverbLen = sampleRate * 1.2; // Réduit à 1.2s
+    const reverbBuffer = liveAudioCtx.createBuffer(2, reverbLen, sampleRate);
+    for (let channel = 0; channel < 2; channel++) {
+      const channelData = reverbBuffer.getChannelData(channel);
+      for (let i = 0; i < reverbLen; i++) {
+        channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2.5) * 0.25; // Adouci
+      }
+    }
+    liveReverbNode = liveAudioCtx.createConvolver();
+    liveReverbNode.buffer = reverbBuffer;
+    const reverbWetGain = liveAudioCtx.createGain();
+    reverbWetGain.gain.setValueAtTime(0.15, liveAudioCtx.currentTime); // Volume effet baissé
+    liveReverbNode.connect(reverbWetGain);
+    reverbWetGain.connect(liveMasterCompressor);
+  }
+
+  function jouerSonLive(freq, durationMs, isSustain, voixSimultanees = 1) {
+    initLiveAudioEngine();
+    const currentTime = liveAudioCtx.currentTime;
+    const durationSec = durationMs / 1000;
+    const naturalDecayTime = isSustain ? 10.0 : Math.max(durationSec, 4.0);
+
+    // Compensation de polyphonie : plus il y a de notes jouées EN MÊME TEMPS (accord), plus
+    // chaque note est atténuée individuellement, pour empêcher leurs crêtes de s'additionner
+    // et de saturer avant même d'atteindre le compresseur/limiteur.
+    const facteurPolyphonie = 1 / Math.sqrt(Math.max(1, voixSimultanees));
+
+    const mainGain = liveAudioCtx.createGain();
+    mainGain.gain.setValueAtTime(0, currentTime);
+    // Baisse des crêtes initiales pour laisser du headroom aux accords
+    mainGain.gain.linearRampToValueAtTime(0.35 * facteurPolyphonie, currentTime + 0.005); 
+    mainGain.gain.exponentialRampToValueAtTime(0.20 * facteurPolyphonie, currentTime + 0.08); 
+    
+    if (!isSustain) {
+      mainGain.gain.setValueAtTime(0.20 * facteurPolyphonie * Math.pow(0.88, durationSec), currentTime + durationSec);
+      mainGain.gain.exponentialRampToValueAtTime(0.001, currentTime + durationSec + 0.25);
+    } else {
+      mainGain.gain.exponentialRampToValueAtTime(0.001, currentTime + naturalDecayTime);
+    }
+    
+    // Connecté au masterGain compressé au lieu de .destination direct
+    mainGain.connect(liveMasterGain);
+    if (liveReverbNode) mainGain.connect(liveReverbNode);
+
+    const harmoniques = [
+      { fMult: 1.00, type: 'sine', vol: 0.50, decayRatio: 1.0 },
+      { fMult: 2.00, type: 'sine', vol: 0.30, decayRatio: 0.85 },
+      { fMult: 3.01, type: 'triangle', vol: 0.12, decayRatio: 0.70 },
+      { fMult: 4.00, type: 'sine', vol: 0.07, decayRatio: 0.50 },
+      { fMult: 5.02, type: 'sine', vol: 0.03, decayRatio: 0.30 }
+    ];
+
+    const finalCutoff = isSustain ? naturalDecayTime : (durationSec + 0.25);
+
+    harmoniques.forEach(h => {
+      if (freq * h.fMult < liveAudioCtx.sampleRate / 2) {
+        const osc = liveAudioCtx.createOscillator();
+        const g = liveAudioCtx.createGain();
+        osc.type = h.type;
+        osc.frequency.setValueAtTime(freq * h.fMult, currentTime);
+        g.gain.setValueAtTime(h.vol, currentTime);
+        const singleHarmonicDecay = finalCutoff * h.decayRatio;
+        g.gain.exponentialRampToValueAtTime(0.001, currentTime + Math.max(singleHarmonicDecay, 0.05));
+        osc.connect(g);
+        g.connect(mainGain);
+        osc.start(currentTime);
+        osc.stop(currentTime + Math.max(singleHarmonicDecay, 0.06));
+      }
+    });
+
+    const hammerOsc = liveAudioCtx.createOscillator();
+    const hammerGain = liveAudioCtx.createGain();
+    hammerOsc.type = 'triangle';
+    hammerOsc.frequency.setValueAtTime(70, currentTime);
+    hammerGain.gain.setValueAtTime(0.15 * facteurPolyphonie, currentTime);
+    hammerGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.035);
+    hammerOsc.connect(hammerGain);
+    hammerGain.connect(liveMasterGain); // Connecté au masterGain
+    hammerOsc.start(currentTime);
+    hammerOsc.stop(currentTime + 0.04);
+  }
+
+  function getFrequencyLive(noteName) {
+    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const name = noteName.slice(0, -1); const octave = parseInt(noteName.slice(-1));
+    return 440 * Math.pow(2, ((notes.indexOf(name) + (octave + 1) * 12) - 69) / 12);
+  }
+
   const noteContainer = document.getElementById('noteCheckboxes');
   for(let oct = 3; oct <= 5; oct++) {
     const octDiv = document.createElement('div'); octDiv.classList.add('octave-row');
@@ -235,26 +413,16 @@
     octDiv.appendChild(grid); noteContainer.appendChild(octDiv);
   }
 
-  let sequenceCourante = [];
-  let claviersDeLaLecon = [];
-  let modeSaisieActuel = 'manuel'; 
-  let currentSustainPedalState = false;
-
-  // --- NOUVELLES FONCTIONS DE FORMATAGE DE TEXTE ET D'IMAGE --- //
-  
   function changerTaillePolice(size) {
     if(!size) return;
-    // Cette technique permet d'utiliser une taille de police exacte en px au lieu du standard 1-7.
     document.execCommand("styleWithCSS", false, true);
-    document.execCommand("fontSize", false, "7"); // Applique une balise de repérage
+    document.execCommand("fontSize", false, "7");
     let editor = document.getElementById('lessonEditor');
-    // On trouve la balise créée et on la remplace par la taille choisie
     let fonts = editor.querySelectorAll('font[size="7"], span[style*="font-size: -webkit-xxx-large"], span[style*="font-size: xxx-large"]');
     fonts.forEach(f => {
         f.removeAttribute("size");
         f.style.fontSize = size + "px";
     });
-    // On remet le selecteur à zéro pour fluidité
     document.getElementById('fontSizePicker').value = "";
   }
 
@@ -262,26 +430,21 @@
     let filename = prompt("Nom du fichier image (ex: schema_1.jpg) :\n(L'image sera récupérée depuis https://pianotement.github.io/images/)");
     if (filename) {
         let url = "https://pianotement.github.io/images/" + filename;
-        // On insère l'image avec un attribut title pour indiquer comment redimensionner
         let imgHTML = `<img src="${url}" style="max-width: 100%; height: auto; cursor: pointer; display: block; margin: 15px auto;" title="Cliquez sur l'image pour la redimensionner" />`;
         document.execCommand('insertHTML', false, imgHTML);
     }
   }
 
-  // --- ÉCOUTEUR POUR LE REDIMENSIONNEMENT DES IMAGES AU CLIC --- //
   document.getElementById('lessonEditor').addEventListener('click', function(e) {
       if (e.target && e.target.tagName === 'IMG') {
-          // On récupère la largeur actuelle ou on met 100% par défaut
           let currentWidth = e.target.style.width || "100%";
           let newWidth = prompt("Redimensionner l'image.\nEntrez une nouvelle largeur (ex: 300px, 50%, ou 100%) :", currentWidth);
-          
           if (newWidth) {
               e.target.style.width = newWidth;
-              e.target.style.height = 'auto'; // Force le respect des proportions
+              e.target.style.height = 'auto'; 
           }
       }
   });
-
 
   function changerModeSaisie(mode) {
     modeSaisieActuel = mode;
@@ -290,8 +453,6 @@
     document.getElementById('blocSaisieManuel').style.display = mode === 'manuel' ? 'block' : 'none';
     document.getElementById('blocSaisieMidi').style.display = mode === 'midi' ? 'block' : 'none';
     
-    document.getElementById('sustainGroupRow').style.display = mode === 'manuel' ? 'block' : 'none';
-
     if (mode === 'midi') activerSystemeMidi();
     else stopperRecMidi();
   }
@@ -323,10 +484,11 @@
   let midiAccessInstance = null;
   let isMidiRecording = false;
   let midiRecordMode = null; 
-  let lastMidiRecordMode = 'libre'; // Mémorise le mode pour l'export
+  let lastMidiRecordMode = 'libre'; 
   let timeLastMidiEvent = 0;
   let bufferMidiNotes = [];
   let bufferMidiTimeout = null;
+  let bufferGroupStartTime = 0;
 
   function activerSystemeMidi() {
     const statusLabel = document.getElementById('midiStatusLabel');
@@ -352,18 +514,19 @@
   }
 
   function traiterMessageMidi(event) {
-    if (!isMidiRecording) return;
     const command = event.data[0] & 0xf0;
     const data1 = event.data[1];
     const data2 = event.data[2];
 
+    if (command === 0xB0 && data1 === 64) {
+      currentSustainPedalState = (data2 >= 64);
+    }
+
+    if (!isMidiRecording) return;
+
     if (command === 0x90 && data2 > 0) { 
       const noteStringId = conversionPitchMidi(data1);
       if (noteStringId) dispatcherNoteMidi(noteStringId);
-    }
-    
-    if (command === 0xB0 && data1 === 64) {
-      currentSustainPedalState = (data2 >= 64);
     }
   }
 
@@ -374,42 +537,62 @@
     return null;
   }
 
+  function getFenetreSimultaneite() {
+    const val = parseInt(document.getElementById('midiToleranceInput').value);
+    return (!isNaN(val) && val >= 10 && val <= 150) ? val : 40;
+  }
+
   function dispatcherNoteMidi(noteId) {
-    const tempoParam = parseInt(document.getElementById('tempoInput').value) || 1000;
+    // Évite qu'une même touche déclenchée deux fois de manière très rapprochée (rebond du
+    // clavier MIDI, double-triggering) ne vienne polluer l'accord en cours de constitution.
+    if (bufferMidiNotes.some(n => n.id === noteId)) return;
+
+    // La fenêtre de tolérance démarre UNIQUEMENT à la 1ère note du groupe et n'est plus
+    // repoussée à chaque nouvelle note reçue (contrairement à l'ancien système). Ainsi, un
+    // trait rapide de notes successives se scinde correctement en plusieurs étapes au lieu
+    // de fusionner indéfiniment en un seul bloc tant que les notes s'enchaînent vite.
+    if (bufferMidiNotes.length === 0) {
+      bufferGroupStartTime = performance.now();
+      bufferMidiTimeout = setTimeout(finaliserGroupeMidi, getFenetreSimultaneite());
+    }
+
     bufferMidiNotes.push({ id: noteId, doigt: '' });
-    
-    if (bufferMidiTimeout) clearTimeout(bufferMidiTimeout);
-    
-    bufferMidiTimeout = setTimeout(() => {
-      const instantT = performance.now();
-      
-      if (midiRecordMode === 'fixe' || midiRecordMode === 'fixed') {
+  }
+
+  function finaliserGroupeMidi() {
+    const tempoParam = parseInt(document.getElementById('tempoInput').value) || 1000;
+    const finalSustain = currentSustainPedalState || document.getElementById('sustainInput').checked;
+
+    if (midiRecordMode === 'fixe' || midiRecordMode === 'fixed') {
+      sequenceCourante.push({ 
+        notes: [...bufferMidiNotes], 
+        delayToNext: tempoParam, 
+        sustainPressed: finalSustain 
+      });
+    } else if (midiRecordMode === 'libre') {
+      if (sequenceCourante.length === 0) {
         sequenceCourante.push({ 
           notes: [...bufferMidiNotes], 
           delayToNext: tempoParam, 
-          sustainPressed: currentSustainPedalState 
+          sustainPressed: finalSustain 
         });
-      } else if (midiRecordMode === 'libre') {
-        if (sequenceCourante.length === 0) {
-          sequenceCourante.push({ 
-            notes: [...bufferMidiNotes], 
-            delayToNext: tempoParam, 
-            sustainPressed: currentSustainPedalState 
-          });
-        } else {
-          const intervalleReel = Math.round(instantT - timeLastMidiEvent);
-          sequenceCourante[sequenceCourante.length - 1].delayToNext = intervalleReel > 45 ? intervalleReel : tempoParam;
-          sequenceCourante.push({ 
-            notes: [...bufferMidiNotes], 
-            delayToNext: tempoParam, 
-            sustainPressed: currentSustainPedalState 
-          });
-        }
-        timeLastMidiEvent = instantT;
+      } else {
+        // Mesuré entre les instants RÉELS de frappe (capturés dès l'arrivée de chaque note,
+        // pas au moment du traitement différé) : le rythme restitué est donc fidèle, quelle
+        // que soit la fenêtre de tolérance choisie ci-dessus.
+        const intervalleReel = Math.round(bufferGroupStartTime - timeLastMidiEvent);
+        sequenceCourante[sequenceCourante.length - 1].delayToNext = intervalleReel > 15 ? intervalleReel : tempoParam;
+        sequenceCourante.push({ 
+          notes: [...bufferMidiNotes], 
+          delayToNext: tempoParam, 
+          sustainPressed: finalSustain 
+        });
       }
-      bufferMidiNotes = [];
-      actualiserAffichageSequence();
-    }, 45);
+      timeLastMidiEvent = bufferGroupStartTime;
+    }
+    bufferMidiNotes = [];
+    bufferMidiTimeout = null;
+    actualiserAffichageSequence();
   }
 
   function gererEnregistrementMidi(mode) {
@@ -418,8 +601,8 @@
   }
 
   function lancerRecMidi(mode) {
+    if (bufferMidiTimeout) { clearTimeout(bufferMidiTimeout); bufferMidiTimeout = null; }
     isMidiRecording = true; midiRecordMode = mode; lastMidiRecordMode = mode; bufferMidiNotes = [];
-    currentSustainPedalState = false; 
     timeLastMidiEvent = performance.now();
     document.getElementById('indicatorRec').style.display = 'block';
     
@@ -441,7 +624,15 @@
   function stopperRecMidi() {
     if (!isMidiRecording) return;
     isMidiRecording = false;
-    if (bufferMidiTimeout) clearTimeout(bufferMidiTimeout);
+
+    // Si des notes étaient encore en attente de regroupement au moment de l'arrêt
+    // (ex : dernier accord joué juste avant ESPACE), on les valide immédiatement
+    // au lieu de les perdre silencieusement.
+    if (bufferMidiTimeout) {
+      clearTimeout(bufferMidiTimeout);
+      if (bufferMidiNotes.length > 0) finaliserGroupeMidi();
+    }
+
     document.getElementById('indicatorRec').style.display = 'none';
     
     document.getElementById('btnMidiLibre').innerText = "🔴 Rythme Libre";
@@ -483,7 +674,7 @@
       const header = document.createElement('div');
       header.className = 'step-header';
       
-      let infoPedale = step.sustainPressed ? " | 🌟 Sustain Actif (Pédale)" : "";
+      let infoPedale = step.sustainPressed ? " | 🌟 Sustain Actif" : "";
       header.innerHTML = `<span>ÉTAPES ${stepIdx + 1} (${step.delayToNext}ms)${infoPedale}</span><span class="btn-delete-step" onclick="supprimerEtape(${stepIdx})">✕</span>`;
       stepBlock.appendChild(header);
 
@@ -526,7 +717,7 @@
   });
 
   function detecterConteneurCible(container, yPosition) {
-    const elementsDisponibles = [...container.children].filter(el => !el.classList.contains('dragging'));
+    const elementsDisponibles = [...container.children].filter(el => !el.classList.contains('dragging') && el.tagName !== 'BR');
     return elementsDisponibles.reduce((proche, enfant) => {
       const rectangle = enfant.getBoundingClientRect();
       const difference = yPosition - rectangle.top - rectangle.height / 2;
@@ -535,22 +726,21 @@
     }, { difference: Number.NEGATIVE_INFINITY }).element;
   }
 
-  window.supprimerClavierDuCours = function(id) {
+  function supprimerClavierDuCours(id) {
     if (confirm("Supprimer ce bloc clavier ?")) {
       document.querySelector(`.pattern-marker[data-clavier-id="${id}"]`)?.remove();
       claviersDeLaLecon = claviersDeLaLecon.filter(c => c.id !== id);
     }
-  };
+  }
 
   function insererDansCours() {
     if (sequenceCourante.length === 0) { alert("Le motif courant est vide !"); return; }
     
     const title = document.getElementById('titreClavier').value || "Clavier Interactif";
-    
-    // Utilise lastMidiRecordMode pour retenir le type de schéma même si l'enregistrement a été mis en pause
     let modeExport = modeSaisieActuel === 'manuel' ? document.querySelector('input[name="timeMode"]:checked').value : (lastMidiRecordMode || 'libre');
     const uniqueId = "kbd_" + Date.now();
-    const isMidiExport = (modeSaisieActuel === 'midi');
+    
+    const globalSustain = document.getElementById('sustainInput').checked;
 
     claviersDeLaLecon.push({
       id: uniqueId,
@@ -558,26 +748,141 @@
       mode: modeExport, 
       tempo: document.getElementById('tempoInput').value,
       remanence: document.getElementById('remanenceInput').checked,
-      sustain: isMidiExport ? false : document.getElementById('sustainInput').checked,
+      sustain: globalSustain,
       sequence: JSON.parse(JSON.stringify(sequenceCourante))
     });
 
     const markup = `
       <div contenteditable="false" draggable="true" class="pattern-marker" data-clavier-id="${uniqueId}">
-        <div class="marker-title">
-          🎹 CLAVIER : <strong>${title}</strong>
-          <small>(${sequenceCourante.length} étapes mémorisées) — Maintenir et faire glisser pour déplacer</small>
+        <div class="marker-header">
+          <div class="marker-title">
+            🎹 CLAVIER : <strong>${title}</strong>
+            <small>(${sequenceCourante.length} étapes) — Maintenir pour déplacer</small>
+          </div>
+          <div class="marker-ctrls">
+            <button onclick="supprimerClavierDuCours('${uniqueId}')">✕</button>
+          </div>
         </div>
-        <div class="marker-ctrls">
-          <button onclick="supprimerClavierDuCours('${uniqueId}')">✕</button>
-        </div>
+        <div id="live_piano_zone_${uniqueId}"></div>
       </div><p><br></p>`;
 
     editor.insertAdjacentHTML('beforeend', markup);
     editor.scrollTop = editor.scrollHeight;
 
+    genererPianoLive(uniqueId);
+
     reinitialiserSequence();
     document.getElementById('titreClavier').value = "";
+  }
+
+  function genererPianoLive(cid) {
+    const data = claviersDeLaLecon.find(c => c.id === cid);
+    const containerDom = document.getElementById('live_piano_zone_' + cid);
+    if (!data || !containerDom) return;
+
+    const container = document.createElement('div');
+    container.className = 'piano-container';
+    
+    let html = '<div class="piano-wrapper"><div class="piano" id="live_piano_dom_'+cid+'"></div></div>';
+    html += '<div class="sustain-pedal-zone"><div class="sustain-pedal-badge" id="live_pedal_'+cid+'">Pédale de Sustain</div></div>';
+    
+    if (data.mode !== 'fixed') {
+      html += '<div class="controls"><button class="btn-play" id="live_play_'+cid+'">▶ Écouter</button><button class="btn-pause" id="live_pause_'+cid+'">⏸ Pause</button><button class="btn-reset" id="live_reset_'+cid+'">⏹ Stop</button></div>';
+    } else {
+      html += "<p style='font-size:14px; color:#9ca3af; margin:0;'>(Schéma d'accord fixe — Cliquez sur les touches pour tester l'acoustique)</p>";
+    }
+    
+    container.innerHTML = html;
+    containerDom.appendChild(container);
+
+    const pianoDom = document.getElementById('live_piano_dom_'+cid);
+    const pedalDom = document.getElementById('live_pedal_'+cid);
+    let whiteCount = 0;
+    
+    for (let oct = 2; oct <= 6; oct++) {
+      notesDefMain.forEach(item => {
+        const key = document.createElement('div'); const noteId = item.n + oct;
+        key.className = 'key ' + item.t; key.id = 'live_' + cid + '_' + noteId;
+        
+        const finger = document.createElement('span'); finger.className = 'finger'; finger.id = 'live_f_' + cid + '_' + noteId;
+        key.appendChild(finger);
+        
+        if (item.t === 'white') { key.style.left = (whiteCount * 24) + 'px'; whiteCount++; } else { key.style.left = (whiteCount * 24 - 8) + 'px'; }
+        if(item.t === 'white') { key.style.width = "24px"; key.style.height = "160px"; } 
+        else { key.style.width = "16px"; key.style.height = "95px"; }
+        
+        key.addEventListener('mousedown', () => jouerSonLive(getFrequencyLive(noteId), data.tempo, data.sustain));
+        pianoDom.appendChild(key);
+      });
+    }
+    pianoDom.style.width = (whiteCount * 24) + 'px';
+
+    if (data.mode === 'fixed') {
+      data.sequence.forEach(stepObj => {
+        stepObj.notes.forEach(n => {
+          const kEl = document.getElementById('live_' + cid + '_' + n.id);
+          const fEl = document.getElementById('live_f_' + cid + '_' + n.id);
+          if (kEl) kEl.classList.add('active');
+          if (fEl && n.doigt) { fEl.innerText = n.doigt; fEl.classList.add('active-text'); }
+        });
+        if(stepObj.sustainPressed && pedalDom) pedalDom.classList.add('pedal-on');
+      });
+    } else {
+      let isPlaying = false; let currentStep = 0; let stepTimeout = null; let activeExts = [];
+      
+      if (data.remanence) {
+        data.sequence.forEach(stepObj => { stepObj.notes.forEach(n => { document.getElementById('live_' + cid + '_' + n.id)?.classList.add('remanence'); }); });
+      }
+
+      function cleanKeys() {
+        activeExts.forEach(clearTimeout); activeExts = [];
+        pianoDom.querySelectorAll('.key.active').forEach(k => k.classList.remove('active'));
+        pianoDom.querySelectorAll('.finger.active-text').forEach(f => { f.innerText = ''; f.classList.remove('active-text'); });
+        if(pedalDom) pedalDom.classList.remove('pedal-on');
+      }
+
+      function playStepLoop() {
+        if (!isPlaying) return;
+        if (currentStep >= data.sequence.length) currentStep = 0;
+        
+        const stepData = data.sequence[currentStep];
+        const stepTime = stepData.delayToNext || 1000;
+        
+        const isMidiTrack = (data.mode === 'libre' || data.mode === 'fixe');
+        const noteSustain = (isMidiTrack && stepData.sustainPressed) || data.sustain;
+
+        if (pedalDom) {
+          if (noteSustain) pedalDom.classList.add('pedal-on');
+          else pedalDom.classList.remove('pedal-on');
+        }
+        
+        stepData.notes.forEach(n => {
+          jouerSonLive(getFrequencyLive(n.id), stepTime, noteSustain, stepData.notes.length);
+          
+          const kEl = document.getElementById('live_' + cid + '_' + n.id);
+          const fEl = document.getElementById('live_f_' + cid + '_' + n.id);
+          
+          if(kEl) {
+            kEl.classList.remove('active');
+            void kEl.offsetWidth; 
+            kEl.classList.add('active');
+          }
+          if(fEl && n.doigt) { fEl.innerText = n.doigt; fEl.classList.add('active-text'); }
+          
+          activeExts.push(setTimeout(() => {
+            if(kEl) kEl.classList.remove('active');
+            if(fEl) { fEl.innerText = ''; fEl.classList.remove('active-text'); }
+          }, stepTime));
+        });
+        
+        currentStep++; 
+        stepTimeout = setTimeout(playStepLoop, stepTime);
+      }
+
+      document.getElementById('live_play_'+cid).onclick = () => { if(!isPlaying){ isPlaying = true; playStepLoop(); } };
+      document.getElementById('live_pause_'+cid).onclick = () => { isPlaying = false; clearTimeout(stepTimeout); activeExts.forEach(clearTimeout); activeExts = []; };
+      document.getElementById('live_reset_'+cid).onclick = () => { isPlaying = false; clearTimeout(stepTimeout); cleanKeys(); currentStep = 0; };
+    }
   }
 
   function genererLeconWeb() {
@@ -597,8 +902,6 @@
   .logo-site span { color: #f1c40f; }
   .main-content { flex: 1; padding: 40px 20px; max-width: 960px; margin: 0 auto; width: 100%; box-sizing: border-box; font-size: 18px;}
   h3 { color: #00d2d3; margin-top: 30px; border-bottom: 1px solid #232d38; padding-bottom: 8px;}
-  
-  /* Ajout de sécurité pour garantir la responsivité des images intégrées */
   .main-content img { max-width: 100%; height: auto; border-radius: 8px; }
 
   .piano-container { background: #1b222a; padding: 25px; border-radius: 12px; border: 1px solid #232d38; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin: 30px 0; }
@@ -612,16 +915,8 @@
   
   .key.white.remanence, .key.black.remanence { background: #1dd1a1 !important; border-bottom: 4px solid #10ac84; }
   
-  .key.white.active { 
-    background: #2e86de !important; 
-    border-bottom: 4px solid #00ffff; 
-    animation: flashImpactBlanche 0.4s ease-out forwards; 
-  }
-  .key.black.active { 
-    background: #1b4f72 !important; 
-    border-bottom: 4px solid #00ffff; 
-    animation: flashImpactNoire 0.4s ease-out forwards; 
-  }
+  .key.white.active { background: #2e86de !important; border-bottom: 4px solid #00ffff; animation: flashImpactBlanche 0.4s ease-out forwards; }
+  .key.black.active { background: #1b4f72 !important; border-bottom: 4px solid #00ffff; animation: flashImpactNoire 0.4s ease-out forwards; }
   
   @keyframes flashImpactBlanche {
     0% { background: #00ffff; box-shadow: inset 0 0 30px #00ffff, 0 0 15px #00ffff; }
@@ -666,6 +961,21 @@
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   let audioCtx = null;
   let reverbNode = null;
+  let masterCompressor = null;
+  let masterLimiter = null;
+  let masterGain = null;
+
+  function creerCourbeLimiteur(seuil, margeHeadroom) {
+    const nbEchantillons = 1024;
+    const courbe = new Float32Array(nbEchantillons);
+    for (let i = 0; i < nbEchantillons; i++) {
+      const x = (i / (nbEchantillons - 1)) * 2 - 1;
+      const ax = Math.abs(x);
+      const signe = x < 0 ? -1 : 1;
+      courbe[i] = ax <= seuil ? x : signe * (seuil + margeHeadroom * Math.tanh((ax - seuil) / margeHeadroom));
+    }
+    return courbe;
+  }
 
   const notesDef = [
     { n: 'C', t: 'white' }, { n: 'C#', t: 'black' }, { n: 'D', t: 'white' }, { n: 'D#', t: 'black' },
@@ -676,53 +986,69 @@
   function initAudioEngine() {
     if (audioCtx) return;
     audioCtx = new AudioContext();
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.7; 
     
+    masterCompressor = audioCtx.createDynamicsCompressor();
+    masterCompressor.threshold.value = -8;
+    masterCompressor.knee.value = 6;
+    masterCompressor.ratio.value = 20;
+    masterCompressor.attack.value = 0.003;
+    masterCompressor.release.value = 0.2;
+
+    masterLimiter = audioCtx.createWaveShaper();
+    masterLimiter.curve = creerCourbeLimiteur(0.8, 0.18);
+    
+    masterGain.connect(masterCompressor);
+    masterCompressor.connect(masterLimiter);
+    masterLimiter.connect(audioCtx.destination);
+
     const sampleRate = audioCtx.sampleRate;
-    const reverbLen = sampleRate * 1.8;
+    const reverbLen = sampleRate * 1.2;
     const reverbBuffer = audioCtx.createBuffer(2, reverbLen, sampleRate);
-    
     for (let channel = 0; channel < 2; channel++) {
       const channelData = reverbBuffer.getChannelData(channel);
       for (let i = 0; i < reverbLen; i++) {
-        channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2.2) * 0.5;
+        channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2.5) * 0.25;
       }
     }
-    
     reverbNode = audioCtx.createConvolver();
     reverbNode.buffer = reverbBuffer;
-    
     const reverbWetGain = audioCtx.createGain();
-    reverbWetGain.gain.setValueAtTime(0.22, audioCtx.currentTime);
-    
+    reverbWetGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
     reverbNode.connect(reverbWetGain);
-    reverbWetGain.connect(audioCtx.destination);
+    reverbWetGain.connect(masterCompressor);
   }
 
-  function jouerSonPianoAcoustique(freq, durationMs, isSustain) {
+  function jouerSonPianoAcoustique(freq, durationMs, isSustain, voixSimultanees = 1) {
     initAudioEngine();
     const currentTime = audioCtx.currentTime;
     const durationSec = durationMs / 1000;
-    
     const naturalDecayTime = isSustain ? 10.0 : Math.max(durationSec, 4.0);
+
+    // Compensation de polyphonie : atténue chaque note selon le nombre de notes jouées
+    // en même temps, pour empêcher les accords de saturer le bus avant le compresseur.
+    const facteurPolyphonie = 1 / Math.sqrt(Math.max(1, voixSimultanees));
 
     const mainGain = audioCtx.createGain();
     mainGain.gain.setValueAtTime(0, currentTime);
-    mainGain.gain.linearRampToValueAtTime(0.55, currentTime + 0.005); 
-    mainGain.gain.exponentialRampToValueAtTime(0.30, currentTime + 0.08); 
+    mainGain.gain.linearRampToValueAtTime(0.35 * facteurPolyphonie, currentTime + 0.005); 
+    mainGain.gain.exponentialRampToValueAtTime(0.20 * facteurPolyphonie, currentTime + 0.08); 
     
     if (!isSustain) {
-      mainGain.gain.setValueAtTime(0.30 * Math.pow(0.88, durationSec), currentTime + durationSec);
+      mainGain.gain.setValueAtTime(0.20 * facteurPolyphonie * Math.pow(0.88, durationSec), currentTime + durationSec);
       mainGain.gain.exponentialRampToValueAtTime(0.001, currentTime + durationSec + 0.25);
     } else {
       mainGain.gain.exponentialRampToValueAtTime(0.001, currentTime + naturalDecayTime);
     }
     
-    mainGain.connect(audioCtx.destination);
+    mainGain.connect(masterGain);
     if (reverbNode) mainGain.connect(reverbNode);
 
     const harmoniques = [
-      { fMult: 1.00, type: 'sine', vol: 0.60, decayRatio: 1.0 },
-      { fMult: 2.00, type: 'sine', vol: 0.35, decayRatio: 0.85 },
+      { fMult: 1.00, type: 'sine', vol: 0.50, decayRatio: 1.0 },
+      { fMult: 2.00, type: 'sine', vol: 0.30, decayRatio: 0.85 },
       { fMult: 3.01, type: 'triangle', vol: 0.12, decayRatio: 0.70 },
       { fMult: 4.00, type: 'sine', vol: 0.07, decayRatio: 0.50 },
       { fMult: 5.02, type: 'sine', vol: 0.03, decayRatio: 0.30 }
@@ -736,11 +1062,9 @@
         const g = audioCtx.createGain();
         osc.type = h.type;
         osc.frequency.setValueAtTime(freq * h.fMult, currentTime);
-        
         g.gain.setValueAtTime(h.vol, currentTime);
         const singleHarmonicDecay = finalCutoff * h.decayRatio;
         g.gain.exponentialRampToValueAtTime(0.001, currentTime + Math.max(singleHarmonicDecay, 0.05));
-        
         osc.connect(g);
         g.connect(mainGain);
         osc.start(currentTime);
@@ -752,10 +1076,10 @@
     const hammerGain = audioCtx.createGain();
     hammerOsc.type = 'triangle';
     hammerOsc.frequency.setValueAtTime(70, currentTime);
-    hammerGain.gain.setValueAtTime(0.20, currentTime);
+    hammerGain.gain.setValueAtTime(0.15 * facteurPolyphonie, currentTime);
     hammerGain.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.035);
     hammerOsc.connect(hammerGain);
-    hammerGain.connect(audioCtx.destination);
+    hammerGain.connect(masterGain);
     hammerOsc.start(currentTime);
     hammerOsc.stop(currentTime + 0.04);
   }
@@ -782,7 +1106,7 @@
     if (data.mode !== 'fixed') {
       html += '<div class="controls"><button class="btn-play" id="play_'+cid+'">▶ Écouter</button><button class="btn-pause" id="pause_'+cid+'">⏸ Pause</button><button class="btn-reset" id="reset_'+cid+'">⏹ Stop</button></div>';
     } else {
-      html += '<p style="font-size:14px; color:#9ca3af; margin:0;">(Schéma d\\'accord fixe — Cliquez sur les touches pour tester l\\'acoustique)</p>';
+      html += "<p style='font-size:14px; color:#9ca3af; margin:0;'>(Schéma d'accord fixe — Cliquez sur les touches pour tester l'acoustique)</p>";
     }
     
     container.innerHTML = html;
@@ -841,16 +1165,16 @@
         const stepData = data.sequence[currentStep];
         const stepTime = stepData.delayToNext || 1000;
         
+        const isMidiTrack = (data.mode === 'libre' || data.mode === 'fixe');
+        const noteSustain = (isMidiTrack && stepData.sustainPressed) || data.sustain;
+
         if (pedalDom) {
-          if (stepData.sustainPressed) pedalDom.classList.add('pedal-on');
+          if (noteSustain) pedalDom.classList.add('pedal-on');
           else pedalDom.classList.remove('pedal-on');
         }
         
-        const isMidiTrack = (data.mode === 'libre' || data.mode === 'fixe');
-        const noteSustain = isMidiTrack ? stepData.sustainPressed : data.sustain;
-
         stepData.notes.forEach(n => {
-          jouerSonPianoAcoustique(getFrequency(n.id), stepTime, noteSustain);
+          jouerSonPianoAcoustique(getFrequency(n.id), stepTime, noteSustain, stepData.notes.length);
           
           const kEl = document.getElementById(cid + '_' + n.id);
           const fEl = document.getElementById('f_' + cid + '_' + n.id);
@@ -889,7 +1213,7 @@
     txtArea.value = template; txtArea.style.display = 'block'; txtArea.select();
     document.execCommand('copy'); txtArea.style.display = 'none';
     
-    alert("Leçon v19 générée ! Nouvelles fonctionnalités de formatage de texte et insertion d'image ajoutées. Le code est copié dans le presse-papiers.");
+    alert("Leçon v24 générée avec succès !");
   }
 </script>
 </body>
