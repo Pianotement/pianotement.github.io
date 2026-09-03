@@ -2,7 +2,12 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Arcade Piano - V17</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a1e">
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -1755,6 +1760,11 @@
         }
 
         genererBaseDeNotes(document.getElementById("cfg-gamme").value); peuplerSelectsAmbitus(); chargerDepuisLocalStorage(); initialiserGestionnairePresets();
+
+        // Active la mise en cache hors-ligne (voir sw.js) — sans effet si le fichier n'est pas hébergé en https.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+        }
     </script>
 </body>
 </html>
