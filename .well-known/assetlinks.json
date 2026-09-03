@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.pianotement.twa",
+        "sha256_cert_fingerprints": ["CA:ED:95:21:8A:81:3F:28:FD:6A:5D:0A:BF:BE:C0:0C:E4:0A:A2:82:A0:E5:33:54:29:6D:F8:68:2E:F6:42:3A"]
+      }
+    }]
