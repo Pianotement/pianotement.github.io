@@ -593,7 +593,7 @@
         const MARGE_VISUELLE_DEMI_TONS = 9;    // demi-tons : écart minimum exigé quand les 2 notes sortent CHACUNE de leur portée (anti-chevauchement des lignes supplémentaires) - à recalibrer après test visuel
         const LIMITE_BASSE_PORTEE_SOL = 64;    // Mi4 : ligne du bas de la portée de sol ; en dessous, la note utilise des lignes supplémentaires
         const LIMITE_HAUTE_PORTEE_FA = 57;     // La3 : ligne du haut de la portée de fa ; au-dessus, la note utilise des lignes supplémentaires
-        const FENETRE_SIMULTANEITE_X = 150;    // pixels : deux colonnes de mains différentes plus proches que ça en X sont considérées comme simultanées
+        const FENETRE_SIMULTANEITE_X = 750;    // pixels : calculé, pas estimé — largeur de la zone jouable (420-130=290px) + étalement max d'un arpège complexe à 7 notes (~455px), pour ne jamais laisser passer une paire qui pourrait se croiser à l'écran, même en cas d'arpège le plus large possible
         const SEUIL_PRIORITE_COUVERTURE = 60;  // tirages : au-delà, une note pas revue depuis ce nombre de tirages devient prioritaire pour sa main
 
 
@@ -1278,7 +1278,7 @@
         }
         function paireAcoustiquementValide(midiA, midiB) {
             let d = Math.abs(midiA - midiB);
-            if (d === 0) return true; // unisson : jamais un souci
+            if (d === 0) return false; // unisson entre les 2 mains : acoustiquement neutre, mais injouable (une seule touche pour deux notes distinctes) — interdit
             if (d <= 2) return false; // seconde mineure/majeure serrée : interdite partout
             if (d >= SEUIL_CLASSE_CONTIGUE) return true;
             let classe = d % 12;
@@ -1297,9 +1297,13 @@
             const autreClef = isTreble ? 'bass' : 'treble';
             let notes = [];
             colonnesEnCours.forEach(col => {
-                if (col.clef === autreClef && Math.abs(col.xBase - absoluteX) < FENETRE_SIMULTANEITE_X) {
-                    col.subNotes.forEach(sub => sub.midi.forEach(m => notes.push(m)));
-                }
+                if (col.clef !== autreClef) return;
+                col.subNotes.forEach(sub => {
+                    let positionReelle = col.xBase + (sub.localX || 0); // position réelle de CETTE note précise, pas juste l'ancrage de la colonne
+                    if (Math.abs(positionReelle - absoluteX) < FENETRE_SIMULTANEITE_X) {
+                        sub.midi.forEach(m => notes.push(m));
+                    }
+                });
             });
             return notes;
         }
