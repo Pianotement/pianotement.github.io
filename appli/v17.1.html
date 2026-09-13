@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>Arcade Piano - V17</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a1a1e">
@@ -12,12 +12,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* DESIGN GLOBAL ÉLITE */
+        html {
+            overscroll-behavior: none; /* pull-to-refresh : certains moteurs ne l'honorent que sur html */
+            -webkit-user-select: none; -moz-user-select: none; user-select: none; /* empêche la sélection de texte (déclencheur du menu contextuel) */
+            -webkit-touch-callout: none; /* effet réel surtout sur WebKit/iOS, gardé par cohérence */
+        }
         body { 
             font-family: 'Montserrat', sans-serif; 
             text-align: center; 
             margin: 0; 
             padding: 15px; 
             overflow-x: hidden; 
+            overscroll-behavior: none; /* pull-to-refresh : Chrome Android l'honore surtout ici */
             color: #fff;
             background-color: #1a1a1e;
             background-image: url('piano_app_bg.png');
@@ -289,9 +295,32 @@
             .stat { padding: 6px 14px; }
             #viewport-wrapper { padding: 6px 0; max-height: calc(100vh - 95px); max-height: calc(100dvh - 95px); overflow: hidden; }
         }
+
+        /* --- Écran "tourne ton appareil" : l'app est désormais paysage uniquement. --- */
+        #ecran-rotation { display: none; }
+        @media (orientation: portrait) {
+            #ecran-rotation {
+                display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+                position: fixed; inset: 0; width: 100%; height: 100%;
+                background: #1a1a1e; color: #fff; z-index: 99999; text-align: center; padding: 40px; box-sizing: border-box;
+            }
+            .icone-rotation { font-size: 60px; animation: rotation-pulse 1.8s ease-in-out infinite; }
+            #ecran-rotation p { font-size: 18px; font-weight: 600; max-width: 320px; margin: 0; }
+            /* Tout le reste doit rester invisible et non cliquable tant qu'on est en portrait */
+            #top-controls-bar, #menu-config, #game-ui, .overlay-screen { display: none !important; }
+        }
+        @keyframes rotation-pulse {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
     </style>
 </head>
 <body>
+
+    <div id="ecran-rotation">
+        <div class="icone-rotation">📱</div>
+        <p data-i18n="tournerAppareil">Merci de tourner votre appareil en mode paysage pour jouer</p>
+    </div>
 
     <div class="top-controls" id="top-controls-bar">
         <div class="top-controls-left">
@@ -700,51 +729,51 @@
             },
             es: {
                 RECORD: [
-                    "¡Nuevo récord, felicidades! 🏆", "Es la historia de un récord que acaba de ser aplastado. 🏆", "El Olimpo te espera. 🏆", 
-                    "Eres la definición misma de la palabra 'victoria'. 🏆", "Incluso Mozart habría sudado. 🏆", "Tú eres el jefe final. 🏆", 
-                    "Una obra maestra absoluta de destreza. 🏆", "Ese es un verdadero récord. Uno que inspira respeto. 🏆", "La leyenda cuenta que tu teclado todavía humea. 🏆",
-                    "Acabas de redefinir la noción de virtuosismo. 🏆", "Nadie pensó que fuera posible. Y sin embargo... 🏆", "Es hermoso como Bach, pero más rápido. 🏆",
-                    "Tendremos que inventar nuevos niveles para ti. 🏆", "Las leyes de la física claramente ya no se aplican a tus dedos. 🏆",
+                    "¡Nuevo récord, felicidades! 🏆", "Es la historia de un récord que acaba de ser aplastado. 🏆", "El Olimpo le espera. 🏆", 
+                    "Es usted la definición misma de la palabra 'victoria'. 🏆", "Incluso Mozart habría sudado. 🏆", "Usted es el jefe final. 🏆", 
+                    "Una obra maestra absoluta de destreza. 🏆", "Ese es un verdadero récord. Uno que inspira respeto. 🏆", "La leyenda cuenta que su teclado todavía humea. 🏆",
+                    "Acaba de redefinir la noción de virtuosismo. 🏆", "Nadie pensó que fuera posible. Y sin embargo... 🏆", "Es hermoso como Bach, pero más rápido. 🏆",
+                    "Tendremos que inventar nuevos niveles para usted. 🏆", "Las leyes de la física claramente ya no se aplican a sus dedos. 🏆",
                     "Es un triunfo. Modesto, pero mundial. 🏆", "La historia recordará este momento. Tal vez. 🏆", "Una puntuación digna del conservatorio intergaláctico. 🏆",
-                    "Si la perfección existiera, te pediría un autógrafo. 🏆", "Has roto el juego. En el buen sentido. 🏆", "Magistral. Simplemente magistral. 🏆"
+                    "Si la perfección existiera, le pediría un autógrafo. 🏆", "Ha roto el juego. En el buen sentido. 🏆", "Magistral. Simplemente magistral. 🏆"
                 ],
                 TIER_90: [
-                    "¡Bravo, una de tus mejores puntuaciones!", "Se siente que el récord está muy cerca.", "¡Casi! Es como perder el autobús por 2 segundos, pero con estilo.",
-                    "La perfección es una quimera, pero estuviste a punto de alcanzarla.", "Excelente trabajo, la próxima es la vencida.",
+                    "¡Bravo, una de sus mejores puntuaciones!", "Se siente que el récord está muy cerca.", "¡Casi! Es como perder el autobús por 2 segundos, pero con estilo.",
+                    "La perfección es una quimera, pero estuvo a punto de alcanzarla.", "Excelente trabajo, la próxima es la vencida.",
                     "Esto es lo que llamamos volar demasiado cerca del sol.", "Una actuación de muy alto nivel.", "El récord tiembla, terminará cayendo.",
-                    "Faltó muy poco. Un poquito de nada.", "Estabas en la zona. Todos vimos la zona.", "¡Qué intensidad! El récord tembló.",
+                    "Faltó muy poco. Un poquito de nada.", "Estaba en la zona. Todos vimos la zona.", "¡Qué intensidad! El récord tembló.",
                     "Es una puntuación magnífica. Y lo digo como código binario.", "Casi legendario.", "La próxima partida será la buena, es una certeza estadística.",
-                    "Tienes talento de sobra.", "Chopin habría aprobado esta actuación.", "Estuvo cerca, muy cerca.", "Un dominio impresionante del teclado.",
-                    "Estás coqueteando con la cima de la clasificación.", "¡No te detengas ahora que vas tan bien!"
+                    "Tiene talento de sobra.", "Chopin habría aprobado esta actuación.", "Estuvo cerca, muy cerca.", "Un dominio impresionante del teclado.",
+                    "Está coqueteando con la cima de la clasificación.", "¡No se detenga ahora que va tan bien!"
                 ],
                 TIER_70: [
-                    "¡Bien, estás consolidando tu progreso!", "La constancia es la clave del éxito.", "Es una puntuación muy honesta. Nada para volverse loco, pero muy honesta.",
-                    "Como dijo Churchill: 'El éxito es ir de fracaso en fracaso sin perder el entusiasmo.'", "Tienes las bases, queda refinar la velocidad.",
-                    "Es sólido. Un buen trabajo artesanal.", "Vas por buen camino.", "Un poco más de esfuerzo y el top 90% es tuyo.",
+                    "¡Bien, está consolidando su progreso!", "La constancia es la clave del éxito.", "Es una puntuación muy honesta. Nada para volverse loco, pero muy honesta.",
+                    "Como dijo Churchill: 'El éxito es ir de fracaso en fracaso sin perder el entusiasmo.'", "Tiene las bases, queda refinar la velocidad.",
+                    "Es sólido. Un buen trabajo artesanal.", "Va por buen camino.", "Un poco más de esfuerzo y el top 90% es suyo.",
                     "Esto es lo que llamamos una actuación 'simpática'.", "¡Nada mal! ¿Terminó el calentamiento?", "Se siente el potencial.",
-                    "La perseverancia es la nobleza del esfuerzo.", "Una buena puntuación de mitad de tabla, cómoda y tranquilizadora.", "Sobreviviste más tiempo que la media.",
+                    "La perseverancia es la nobleza del esfuerzo.", "Una buena puntuación de mitad de tabla, cómoda y tranquilizadora.", "Sobrevivió más tiempo que la media.",
                     "La técnica está ahí, falta la chispa.", "Está bien. No es excepcional, pero está bien.", "Roma no se construyó en un día.",
-                    "Un esfuerzo muy encomiable.", "Es un paso necesario hacia la grandeza.", "Puedes estar orgulloso. Moderadamente, pero orgulloso."
+                    "Un esfuerzo muy encomiable.", "Es un paso necesario hacia la grandeza.", "Puede estar orgulloso. Moderadamente, pero orgulloso."
                 ],
                 TIER_50: [
                     "El camino aún es largo, pero el paisaje es bonito.", "Es un comienzo. O un final precipitado, depende de cómo se mire.",
                     "Lo importante es participar. Al menos, eso dicen.", "Una puntuación tibia. Ni hirviendo, ni helada. Tibia.",
-                    "No te rindas, tus dedos pueden hacerlo mejor.", "La práctica hace al maestro.",
-                    "Te estás orientando, eso es completamente normal.", "Alguien tiene que sacar puntuaciones medias para hacer lucir a los demás.",
-                    "¿Una pausa para el café y volvemos?", "Es una puntuación que existe. Ahí lo tienes. Existe.", "El margen de mejora es... vasto.",
-                    "No dejes que esta puntuación te defina.", "Hemos visto cosas mejores. Pero también peores. Rara vez, pero las hay.",
+                    "No se rinda, sus dedos pueden hacerlo mejor.", "La práctica hace al maestro.",
+                    "Se está orientando, eso es completamente normal.", "Alguien tiene que sacar puntuaciones medias para hacer lucir a los demás.",
+                    "¿Una pausa para el café y volvemos?", "Es una puntuación que existe. Ahí la tiene. Existe.", "El margen de mejora es... vasto.",
+                    "No deje que esta puntuación le defina.", "Hemos visto cosas mejores. Pero también peores. Rara vez, pero las hay.",
                     "¡Un poco de concentración, por favor!", "El aprendizaje tiene altibajos. Esto es un bajo.", "Roma no se hizo en un día, y esta puntuación tampoco.",
-                    "Hay una idea ahí. Principalmente solo una idea.", "Solo estabas calentando las muñecas, ¿verdad?", "Es audaz detenerse ahí.",
-                    "La próxima vez, intenta presionar las teclas correctas en el momento correcto."
+                    "Hay una idea ahí. Principalmente solo una idea.", "Solo estaba calentando las muñecas, ¿verdad?", "Es audaz detenerse ahí.",
+                    "La próxima vez, intente presionar las teclas correctas en el momento correcto."
                 ],
                 TIER_LOW: [
-                    "Hay días buenos y días malos. Hoy definitivamente fue malo.", "¿Intentaste presionar las teclas?",
-                    "No estoy enojado, solo decepcionado.", "Es audaz llamar a eso música.", "Nelson Mandela dijo: 'Nunca pierdo, o gano o aprendo'. Has aprendido mucho.",
-                    "Tienes que empezar por algún lado. El sótano es un excelente punto de partida.", "Eso es muy interesante. Pero está mal.",
-                    "¿Tus dedos están entumecidos?", "¿Por qué hacerlo bien cuando puedes hacer esto?", "Edison hizo 1000 intentos antes de la bombilla. Vas por el primero.",
+                    "Hay días buenos y días malos. Hoy definitivamente fue malo.", "¿Intentó presionar las teclas?",
+                    "No estoy enojado, solo decepcionado.", "Es audaz llamar a eso música.", "Nelson Mandela dijo: 'Nunca pierdo, o gano o aprendo'. Ha aprendido mucho.",
+                    "Tiene que empezar por algún lado. El sótano es un excelente punto de partida.", "Eso es muy interesante. Pero está mal.",
+                    "¿Sus dedos están entumecidos?", "¿Por qué hacerlo bien cuando puede hacer esto?", "Edison hizo 1000 intentos antes de la bombilla. Va por el primero.",
                     "Es una actuación... conceptual.", "Incluso mi algoritmo aleatorio lo habría hecho mejor.", "Un error magistral.",
                     "Olvidemos esto y empecemos de nuevo de incógnito.", "Esta puntuación quedará entre nosotros. Lo prometo.", "Fue deslumbrantemente breve.",
-                    "¿Confundiste el teclado con una máquina de escribir?", "No hay fracaso, solo retroalimentación. Aquí está la mía: ay.",
+                    "¿Confundió el teclado con una máquina de escribir?", "No hay fracaso, solo retroalimentación. Aquí está la mía: ay.",
                     "El silencio es a veces el acorde más hermoso.", "Es un récord al revés. Felicidades."
                 ]
             }
@@ -892,7 +921,8 @@
                 btnConfigAccords: "⚙️ Configurer...", chkMelodie: "Mélodie", chkFond: "Accords Fondamentaux", chkRenv: "Accords Renversés", chkArpS: "Arpèges Simples", chkArpC: "Arpèges Complexes", chkTierce: "Tierces", chkQuarte: "Quartes", chkQuinte: "Quintes", chkSixte: "Sixtes", btnOk: "Valider",
                 lblSansErreur: "Mode sans erreur :", optSeOn: "Activé (Pénalité)", optSeOff: "Désactivé",
                 scoresTitle: "Tableau des Scores", btnClose: "Fermer", errErase: "Vous ne pouvez effacer que vos modes enregistrés.", confirmErase: "Voulez-vous vraiment effacer ce mode ?",
-                gammeC: "Do Maj / La Min (Rien)", gammeG: "Sol Maj / Mi Min (1#)", gammeD: "Ré Maj / Si Min (2#)", gammeA: "La Maj / Fa# Min (3#)", gammeE: "Mi Maj / Do# Min (4#)", gammeB: "Si Maj / Sol# Min (5#)", gammeFsharp: "Fa# Maj / Ré# Min (6#)", gammeF: "Fa Maj / Ré Min (1b)", gammeBb: "Sib Maj / Sol Min (2b)", gammeEb: "Mib Maj / Do Min (3b)", gammeAb: "Lab Maj / Fa Min (4b)", gammeDb: "Réb Maj / Sib Min (5b)", gammeGb: "Solb Maj / Mib Min (6b)"
+                gammeC: "Do Maj / La Min (Rien)", gammeG: "Sol Maj / Mi Min (1#)", gammeD: "Ré Maj / Si Min (2#)", gammeA: "La Maj / Fa# Min (3#)", gammeE: "Mi Maj / Do# Min (4#)", gammeB: "Si Maj / Sol# Min (5#)", gammeFsharp: "Fa# Maj / Ré# Min (6#)", gammeF: "Fa Maj / Ré Min (1b)", gammeBb: "Sib Maj / Sol Min (2b)", gammeEb: "Mib Maj / Do Min (3b)", gammeAb: "Lab Maj / Fa Min (4b)", gammeDb: "Réb Maj / Sib Min (5b)", gammeGb: "Solb Maj / Mib Min (6b)",
+                tournerAppareil: "Merci de tourner votre appareil en mode paysage pour jouer"
             },
             en: {
                 midiWaiting: "MIDI WAITING", midiReady: "MIDI READY", midiError: "No MIDI",
@@ -916,7 +946,8 @@
                 btnConfigAccords: "⚙️ Configure...", chkMelodie: "Melody", chkFond: "Root Chords", chkRenv: "Inversions", chkArpS: "Simple Arpeggios", chkArpC: "Complex Arpeggios", chkTierce: "Thirds", chkQuarte: "Fourths", chkQuinte: "Fifths", chkSixte: "Sixths", btnOk: "OK",
                 lblSansErreur: "Error-free mode:", optSeOn: "Enabled (Strict)", optSeOff: "Disabled",
                 scoresTitle: "High Scores", btnClose: "Close", errErase: "You can only delete saved games.", confirmErase: "Do you really want to delete this mode?",
-                gammeC: "C Maj / A Min (None)", gammeG: "G Maj / E Min (1#)", gammeD: "D Maj / B Min (2#)", gammeA: "A Maj / F# Min (3#)", gammeE: "E Maj / C# Min (4#)", gammeB: "B Maj / G# Min (5#)", gammeFsharp: "F# Maj / D# Min (6#)", gammeF: "F Maj / D Min (1b)", gammeBb: "Bb Maj / G Min (2b)", gammeEb: "Eb Maj / C Min (3b)", gammeAb: "Ab Maj / F Min (4b)", gammeDb: "Db Maj / Bb Min (5b)", gammeGb: "Gb Maj / Eb Min (6b)"
+                gammeC: "C Maj / A Min (None)", gammeG: "G Maj / E Min (1#)", gammeD: "D Maj / B Min (2#)", gammeA: "A Maj / F# Min (3#)", gammeE: "E Maj / C# Min (4#)", gammeB: "B Maj / G# Min (5#)", gammeFsharp: "F# Maj / D# Min (6#)", gammeF: "F Maj / D Min (1b)", gammeBb: "Bb Maj / G Min (2b)", gammeEb: "Eb Maj / C Min (3b)", gammeAb: "Ab Maj / F Min (4b)", gammeDb: "Db Maj / Bb Min (5b)", gammeGb: "Gb Maj / Eb Min (6b)",
+                tournerAppareil: "Rotate your device to landscape mode to play"
             },
             es: {
                 midiWaiting: "ESPERANDO MIDI", midiReady: "MIDI LISTO", midiError: "Sin MIDI",
@@ -939,8 +970,9 @@
                 pauseTitle: "JUEGO EN PAUSE", btnResume: "Reanudar (Espacio)", btnReplay: "Volver a jugar", infiniteLabel: "Infinito",
                 btnConfigAccords: "⚙️ Configurar...", chkMelodie: "Melodía", chkFond: "Acordes Fundamentales", chkRenv: "Inversiones", chkArpS: "Arpegios Simples", chkArpC: "Arpegios Complejos", chkTierce: "Terceras", chkQuarte: "Cuartas", chkQuinte: "Quintas", chkSixte: "Sextas", btnOk: "Validar",
                 lblSansErreur: "Modo sin errores:", optSeOn: "Activado (Penalización)", optSeOff: "Désactivado",
-                scoresTitle: "Tabla de puntuación", btnClose: "Cerrar", errErase: "Solo puedes borrar tus partidas guardadas.", confirmErase: "¿Seguro que quieres borrar este modo?",
-                gammeC: "Do May / La Min (Nada)", gammeG: "Sol May / Mi Min (1#)", gammeD: "Re May / Si Min (2#)", gammeA: "La May / Fa# Min (3#)", gammeE: "Mi May / Do# Min (4#)", gammeB: "Si May / Sol# Min (5#)", gammeFsharp: "Fa# May / Re# Min (6#)", gammeF: "Fa May / Re Min (1b)", gammeBb: "Sib May / Sol Min (2b)", gammeEb: "Mib May / Do Min (3b)", gammeAb: "Lab May / Fa Min (4b)", gammeDb: "Reb May / Sib Min (5b)", gammeGb: "Solb May / Mib Min (6b)"
+                scoresTitle: "Tabla de puntuación", btnClose: "Cerrar", errErase: "Solo puede borrar sus partidas guardadas.", confirmErase: "¿Seguro que quiere borrar este modo?",
+                gammeC: "Do May / La Min (Nada)", gammeG: "Sol May / Mi Min (1#)", gammeD: "Re May / Si Min (2#)", gammeA: "La May / Fa# Min (3#)", gammeE: "Mi May / Do# Min (4#)", gammeB: "Si May / Sol# Min (5#)", gammeFsharp: "Fa# May / Re# Min (6#)", gammeF: "Fa May / Re Min (1b)", gammeBb: "Sib May / Sol Min (2b)", gammeEb: "Mib May / Do Min (3b)", gammeAb: "Lab May / Fa Min (4b)", gammeDb: "Reb May / Sib Min (5b)", gammeGb: "Solb May / Mib Min (6b)",
+                tournerAppareil: "Gire su dispositivo en modo horizontal para jugar"
             }
         };
 
@@ -1769,6 +1801,10 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
         }
+
+        // Supprime le menu contextuel (appui long) : la CSS seule (-webkit-touch-callout) est peu fiable sur
+        // Chrome Android, contrairement à cette interception directe de l'évènement.
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
     </script>
 </body>
 </html>
