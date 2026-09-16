@@ -893,13 +893,13 @@
         let audioCtx = null;
         let audioAnalyser = null;
         let audioStream = null;
-        let audioBuffer = new Float32Array(2048);
+        let audioBuffer = new Float32Array(4096);
         // --- Anti faux-positifs du détecteur de pitch (micro) ---
         let pitchCandidatCourant = null, framesStabiliteCourante = 0;
-        let dernierePitchAcceptee = null, dernierePitchAccepteeTimestamp = 0;
-        const FRAMES_STABILITE_REQUISES = 3;  // le pitch détecté doit rester identique ce nombre de frames avant d'être accepté (filtre le scintillement dû aux harmoniques)
-        const DELAI_REFRACTAIRE_MS = 130;     // une ré-apparition de la MÊME note dans ce délai est ignorée (résonance/harmoniques d'une note déjà jouée, pas une nouvelle frappe) — à ajuster si ça bloque des répétitions rapides volontaires
-        const CONFIANCE_MIN = 0.90;           // corrélation normalisée minimale (0 à 1) pour accepter une détection — valeur de départ à affiner après tests sur un vrai piano
+        let noteActuellementTenue = null, framesSilenceConsecutifs = 0;
+        const FRAMES_STABILITE_REQUISES = 3;  // le pitch détecté doit rester identique ce nombre d'analyses avant d'être accepté (filtre le scintillement dû aux harmoniques)
+        const FRAMES_SILENCE_POUR_RELACHE = 2; // nombre d'analyses sans détection valide avant de considérer la note relâchée, soit ~90ms — assez court pour ne pas avaler des répétitions rapides volontaires
+        const CONFIANCE_MIN = 0.50;           // corrélation normalisée minimale (0 à 1) — recalibré par test : le bruit reste sous 0.11, les notes graves légitimes plafonnent naturellement autour de 0.60
 
         let clefEnCoursDeConfig = 'md';
 
@@ -1128,11 +1128,13 @@
                 document.getElementById("cfg-mg-melodie").checked = true; document.getElementById("cfg-mg-fondamental").checked = false; document.getElementById("cfg-mg-renversement").checked = false; document.getElementById("cfg-mg-arpege-simple").checked = false; document.getElementById("cfg-mg-arpege-complexe").checked = false;
                 document.getElementById("cfg-mg-tierce").checked = false; document.getElementById("cfg-mg-quarte").checked = false; document.getElementById("cfg-mg-quinte").checked = false; document.getElementById("cfg-mg-sixte").checked = false;
                 document.getElementById("cfg-debit-treble").disabled = true; document.getElementById("cfg-debit-bass").disabled = true;
+                document.getElementById("cfg-fautes").value = "infinity"; document.getElementById("cfg-fautes").disabled = true; // le mode micro n'est qu'un dépannage sans clavier MIDI : on masque ses imperfections plutôt que de sanctionner le joueur
                 initMicrophone();
             } else {
                 document.getElementById("btn-config-md").disabled = false;
                 document.getElementById("btn-config-mg").disabled = false;
                 document.getElementById("cfg-debit-treble").disabled = false; document.getElementById("cfg-debit-bass").disabled = false;
+                document.getElementById("cfg-fautes").disabled = false;
                 updateBadgeVisual();
             }
             sauvegarderDansLocalStorage();
@@ -1172,7 +1174,7 @@
             if (audioCtx) { updateBadgeVisual(); return Promise.resolve(); }
             return navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 audioStream = stream; audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                audioAnalyser = audioCtx.createAnalyser(); audioAnalyser.fftSize = 2048;
+                audioAnalyser = audioCtx.createAnalyser(); audioAnalyser.fftSize = 4096; // 2048 était trop court pour capter une période complète des notes graves (ex. Do1 ≈ 1349 échantillons/période à 44.1kHz), d'où l'absence de détection sous Do4
                 audioCtx.createMediaStreamSource(stream).connect(audioAnalyser); updateBadgeVisual();
             }).catch(() => { document.getElementById("cfg-input-source").value = "midi"; toggleInputSource(); });
         }
@@ -1183,34 +1185,63 @@
             let r1 = 0, r2 = buffer.length - 1; let thres = 0.2;
             for (let i = 0; i < buffer.length / 2; i++) if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
             for (let i = buffer.length - 1; i >= buffer.length / 2; i--) if (Math.abs(buffer[i]) < thres) { r2 = i; break; }
-            let buf = buffer.slice(r1, r2); let c = new Float32Array(buf.length);
-            for (let i = 0; i < buf.length; i++) for (let j = 0; j < buf.length - i; j++) c[i] += buf[j] * buf[j + i];
-            let d = 0; while (c[d] > c[d + 1]) d++; let maxval = -1, maxpos = -1;
-            for (let i = d; i < c.length; i++) if (c[i] > maxval && c[i] > c[i - 1] && c[i] > c[i + 1]) { maxval = c[i]; maxpos = i; }
-            if (maxpos === -1 || c[0] <= 0) return { freq: -1, confiance: 0 };
-            return { freq: sampleRate / maxpos, confiance: maxval / c[0] }; // confiance proche de 1 = son net et périodique, proche de 0 = bruit/ambigu (transitoire, harmoniques qui brouillent le signal...)
+            let buf = buffer.slice(r1, r2);
+            // Recherche bornée à la plage utile d'un piano (~25 Hz à 4200 Hz) : garde un tampon assez grand pour
+            // capter les notes graves sans recalculer une corrélation complète sur tout le tampon à chaque image (coûteux).
+            let lagMin = Math.max(1, Math.floor(sampleRate / 4200));
+            let lagMax = Math.min(buf.length - 2, Math.ceil(sampleRate / 25));
+            if (lagMax <= lagMin) return { freq: -1, confiance: 0 };
+            let c = new Float32Array(lagMax + 1);
+            for (let i = lagMin; i <= lagMax; i++) { let somme = 0; for (let j = 0; j < buf.length - i; j++) somme += buf[j] * buf[j + i]; c[i] = somme; }
+            let c0 = 0; for (let j = 0; j < buf.length; j++) c0 += buf[j] * buf[j]; // énergie totale, pour normaliser la confiance
+            // La corrélation est artificiellement élevée aux tout petits décalages, pour n'importe quel signal
+            // (simple continuité de la forme d'onde, sans rapport avec la hauteur) : on doit d'abord passer ce
+            // creux avant de chercher le vrai pic, sans quoi les notes graves se faisaient piéger par ce faux maximum.
+            let d = lagMin;
+            while (d < lagMax && c[d] > c[d + 1]) d++;
+            let maxval = -1, maxpos = -1;
+            for (let i = d; i <= lagMax; i++) {
+                let gauche = i > d ? c[i - 1] : -Infinity, droite = i < lagMax ? c[i + 1] : -Infinity;
+                if (c[i] > maxval && c[i] >= gauche && c[i] >= droite) { maxval = c[i]; maxpos = i; }
+            }
+            if (maxpos === -1 || c0 <= 0) return { freq: -1, confiance: 0 };
+            return { freq: sampleRate / maxpos, confiance: maxval / c0 }; // confiance proche de 1 = son net et périodique, proche de 0 = bruit/ambigu
         }
+
+        let dernierAnalyseMicroTimestamp = 0;
+        const INTERVALLE_ANALYSE_MICRO_MS = 45; // limite la fréquence d'analyse (indépendante du taux d'affichage) pour rester performant malgré le tampon agrandi
 
         function analyserFrequenceMicro() {
             if (!jeuActif || enPause || !audioAnalyser) return;
+            let maintenant = performance.now();
+            if (maintenant - dernierAnalyseMicroTimestamp < INTERVALLE_ANALYSE_MICRO_MS) return;
+            dernierAnalyseMicroTimestamp = maintenant;
+
             audioAnalyser.getFloatTimeDomainData(audioBuffer);
             let resultat = autoCorrelate(audioBuffer, audioCtx.sampleRate);
 
-            if (resultat.freq === -1 || resultat.confiance < CONFIANCE_MIN) { pitchCandidatCourant = null; framesStabiliteCourante = 0; return; }
+            if (resultat.freq === -1 || resultat.confiance < CONFIANCE_MIN) {
+                pitchCandidatCourant = null; framesStabiliteCourante = 0;
+                framesSilenceConsecutifs++;
+                if (framesSilenceConsecutifs >= FRAMES_SILENCE_POUR_RELACHE) noteActuellementTenue = null; // la note a été relâchée : une nouvelle frappe de la même hauteur redeviendra détectable
+                return;
+            }
+            framesSilenceConsecutifs = 0;
 
             let midiNote = Math.round(12 * Math.log2(resultat.freq / 440) + 69);
-            if (midiNote < 21 || midiNote > 108) { pitchCandidatCourant = null; framesStabiliteCourante = 0; return; }
+            if (midiNote < 21 || midiNote > 108) return;
 
-            // 1) Le pitch doit rester le même plusieurs frames de suite avant d'être accepté comme une vraie frappe.
+            // 1) Le pitch doit rester le même plusieurs analyses de suite avant d'être accepté comme une vraie frappe.
             if (midiNote === pitchCandidatCourant) framesStabiliteCourante++;
             else { pitchCandidatCourant = midiNote; framesStabiliteCourante = 1; }
             if (framesStabiliteCourante < FRAMES_STABILITE_REQUISES) return;
 
-            // 2) Une fois une note acceptée, on ignore sa réapparition immédiate (résonance/harmoniques d'une note déjà en train de sonner).
-            let maintenant = performance.now();
-            if (midiNote === dernierePitchAcceptee && (maintenant - dernierePitchAccepteeTimestamp) < DELAI_REFRACTAIRE_MS) return;
+            // 2) Tant que la même note reste tenue (pas de coupure de son détectée), on ne la retraite pas :
+            // c'est ce qui provoquait l'explosion de fautes en tenant une note quelques dixièmes de seconde
+            // (la cible avait déjà avancé à la note suivante, donc chaque nouvel appel équivalait à une mauvaise note).
+            if (midiNote === noteActuellementTenue) return;
 
-            dernierePitchAcceptee = midiNote; dernierePitchAccepteeTimestamp = maintenant;
+            noteActuellementTenue = midiNote;
             traiterEntreeNote(midiNote);
         }
 
@@ -1459,6 +1490,12 @@
             return parseInt(mode);
         }
 
+        function afficherFautes() {
+            const lbl = document.getElementById("lbl-fautes");
+            if (config.inputSource === "mic") { lbl.innerText = "∞"; return; } // mode dépannage sans MIDI : on masque le compteur plutôt que d'afficher ses imperfections
+            lbl.innerText = config.modeInfini ? `${fautes} (${DICTIONNAIRE[langueActuelle].infiniteLabel})` : `${fautes} / ${config.maxFautes}`;
+        }
+
         async function lancerJeu() {
             sauvegarderDansLocalStorage();
             config.inputSource = document.getElementById("cfg-input-source").value;
@@ -1533,13 +1570,13 @@
             else { dernierXTreble = 250; dernierXBass = 250; }
 
             dernierDiatonicIndexTreble = null; dernierDiatonicIndexBass = null;
-            pitchCandidatCourant = null; framesStabiliteCourante = 0; dernierePitchAcceptee = null; dernierePitchAccepteeTimestamp = 0;
+            pitchCandidatCourant = null; framesStabiliteCourante = 0; noteActuellementTenue = null; framesSilenceConsecutifs = 0;
             trackerTreble = { notesGenereesCount: 0, historiqueVisites: new Set(), arpegesAForcer: 0, dernierArpege: null, vientDeJouerArpege: false, dernierVuParNote: new Map() };
             trackerBass = { notesGenereesCount: 0, historiqueVisites: new Set(), arpegesAForcer: 0, dernierArpege: null, vientDeJouerArpege: false, dernierVuParNote: new Map() };
             colonnesEnCours = []; trackDOM.innerHTML = ""; enPause = false;
             
             document.getElementById("lbl-score").innerText = score; document.getElementById("lbl-level").innerText = niveau;
-            document.getElementById("lbl-fautes").innerText = config.modeInfini ? `0 (${DICTIONNAIRE[langueActuelle].infiniteLabel})` : `0 / ${config.maxFautes}`;
+            afficherFautes();
             
             const dynamicWidth = document.getElementById("viewport").clientWidth || window.innerWidth;
             while (dernierXTreble < dynamicWidth + 250) { dernierXTreble += calculerProchainEspacementTreble(trackerTreble); if (config.modeMD !== "off") dernierXTreble += creerColonne(dernierXTreble, true); }
@@ -1654,7 +1691,7 @@
 
                     if (reqRedraw) {
                         redessinerColonne(col); 
-                        document.getElementById("lbl-fautes").innerText = config.modeInfini ? `${fautes} (${DICTIONNAIRE[langueActuelle].infiniteLabel})` : `${fautes} / ${config.maxFautes}`;
+                        afficherFautes();
                         if (!config.modeInfini && fautes >= config.maxFautes) { terminerJeu(); return; }
                     }
                     
@@ -1775,7 +1812,7 @@
 
             if (!noteAcceptee && !noteAbsorbee && config.modeSansErreur) {
                 fautes++; 
-                document.getElementById("lbl-fautes").innerText = config.modeInfini ? `${fautes} (${DICTIONNAIRE[langueActuelle].infiniteLabel})` : `${fautes} / ${config.maxFautes}`;
+                afficherFautes();
                 if (!config.modeInfini && fautes >= config.maxFautes) { terminerJeu(); return; }
             }
         }
