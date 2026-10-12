@@ -91,12 +91,6 @@
         }
         .youtube-link svg { width: 16px; height: 16px; fill: currentColor; }
 
-        .donate-link {
-            display: inline-flex; align-items: center; gap: 6px; color: #ff9ff3; text-decoration: none; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 14px; border-radius: 20px; background: rgba(255, 159, 243, 0.1); border: 1px solid rgba(255, 159, 243, 0.25); transition: all 0.3s ease;
-        }
-        .donate-link:hover {
-            color: #fff; background: #f368e0; box-shadow: 0 0 12px rgba(243, 104, 224, 0.5); border-color: transparent;
-        }
 
         .top-controls-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -269,7 +263,7 @@
             .top-controls { padding: 6px 12px; margin-bottom: 8px; gap: 10px; }
             .main-title { font-size: 20px; }
             .midi-badge { padding: 5px 12px; font-size: 12px; }
-            .youtube-link, .donate-link { padding: 4px 10px; font-size: 11px; }
+            .youtube-link { padding: 4px 10px; font-size: 11px; }
             .mode-indicator { padding: 6px 12px; font-size: 12px; }
             #cfg-presets { padding: 6px 30px 6px 12px; font-size: 13px; }
             #cfg-lang { padding: 4px 25px 4px 8px !important; font-size: 12px; }
@@ -294,6 +288,75 @@
             #hud { padding: 8px 18px; margin: 6px auto; font-size: 14px; gap: 10px; }
             .stat { padding: 6px 14px; }
             #viewport-wrapper { padding: 6px 0; max-height: calc(100vh - 95px); max-height: calc(100dvh - 95px); overflow: hidden; }
+        }
+
+        /* --- Smartphone (paysage, écran peu haut) : écran de jeu plein écran, bandeau du haut masqué. ---
+           On se base sur la HAUTEUR : en paysage, les grands téléphones et les petites tablettes ont des largeurs
+           proches, mais des hauteurs bien distinctes (téléphones <= ~430px, tablettes >= ~530px). --- */
+        #mobile-controls { display: none; }
+        #confirm-overlay { display: none; }
+        .lbl-court { display: none; }
+        @media (orientation: landscape) and (max-height: 500px) {
+            #game-ui {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; background: #ffffff; box-sizing: border-box;
+                padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+            }
+            #viewport-wrapper { padding: 0; margin: 0; height: 100%; max-height: none; overflow: hidden; }
+            #viewport { border: none; border-radius: 0; box-shadow: none; }
+
+            /* Niveau / Score / Fautes : texte simple, en bas à gauche, directement sur la zone blanche */
+            #hud {
+                position: absolute; left: calc(10px + env(safe-area-inset-left, 0px)); bottom: 8px; margin: 0; padding: 0; width: auto; max-width: none;
+                background: none; box-shadow: none; border-radius: 0; gap: 14px; justify-content: flex-start;
+                font-size: 13px; text-transform: none; z-index: 200; pointer-events: none; white-space: nowrap;
+            }
+            #hud > button { display: none; }
+            #hud .stat, #stat-level, #stat-score, #stat-fautes {
+                padding: 0; margin: 0; border: none; border-radius: 0; background: none; box-shadow: none; gap: 4px; color: #1e1e24; font-weight: 700;
+            }
+            #hud #stat-level { color: #1f9d57; }
+            #hud #stat-score { color: #c0392b; }
+            #hud #stat-fautes { color: #2c3e50; }
+            #hud #lbl-level, #hud #lbl-score, #hud #lbl-fautes { color: #1e1e24; }
+            /* léger halo blanc : le texte reste lisible aussi sur le fond sombre de l'écran GAME OVER */
+            #hud { text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 6px #fff; }
+            .lbl-long { display: none; }
+            .lbl-court { display: inline; }
+
+            /* Boutons ronds : pause (orange), recommencer (bleu), quitter (rouge) */
+            #mobile-controls {
+                display: flex; position: absolute; right: calc(12px + env(safe-area-inset-right, 0px)); bottom: 8px; gap: 14px; z-index: 200;
+            }
+            .btn-rond {
+                width: clamp(34px, 11vh, 46px); height: clamp(34px, 11vh, 46px); padding: 0; border-radius: 50%; letter-spacing: 0;
+                display: flex; align-items: center; justify-content: center; color: #fff; border: 2px solid rgba(255,255,255,0.85);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.35); -webkit-tap-highlight-color: transparent;
+            }
+            .btn-rond svg { width: 58%; height: 58%; fill: currentColor; }
+            .btn-rond:hover, .btn-rond:active { transform: none; }
+            #mc-pause { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+            #mc-restart { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+            #mc-quit { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+            #mc-pause:hover { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); }
+            #mc-restart:hover { background: linear-gradient(135deg, #5dade2 0%, #3498db 100%); }
+            #mc-quit:hover { background: linear-gradient(135deg, #ec7063 0%, #e74c3c 100%); }
+
+            /* Fenêtre de confirmation (recommencer / quitter) */
+            #confirm-overlay {
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 300; box-sizing: border-box;
+                background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+            }
+            #confirm-box {
+                background: rgba(42,42,53,0.98); border: 2px solid #f39c12; border-radius: 12px; padding: 16px 22px; max-width: 80%;
+                text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6); color: #fff;
+            }
+            #confirm-title { margin: 0 0 6px 0; font-size: 18px; font-weight: 700; }
+            #confirm-note { margin: 0 0 14px 0; font-size: 13px; color: #ecf0f1; }
+            #confirm-actions { display: flex; gap: 14px; justify-content: center; }
+            #confirm-actions button { min-height: 42px; min-width: 110px; padding: 8px 18px; font-size: 14px; transform: none; }
+            #confirm-non { background: #555; }
+            #confirm-oui.confirm-restart { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+            #confirm-oui.confirm-quit { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
         }
 
         /* --- Écran "tourne ton appareil" : l'app est désormais paysage uniquement. --- */
@@ -328,9 +391,6 @@
             <a href="https://youtube.com/@pianotement" target="_blank" class="youtube-link">
                 <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93 .502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                 YouTube
-            </a>
-            <a href="https://fr.tipeee.com/" target="_blank" class="donate-link">
-                ❤️ <span data-i18n="btnDonate">Soutenir</span>
             </a>
             <div id="midi-badge" class="midi-badge" data-i18n="midiWaiting">MIDI</div>
             <select id="cfg-lang" onchange="changerLangue(this.value)" style="width: auto; padding: 5px 30px 5px 10px; font-size: 13px;">
@@ -572,13 +632,36 @@
 
     <div id="game-ui">
         <div id="hud">
-            <div class="stat" id="stat-level"><span data-i18n="hudLevel">Niveau</span> : <span id="lbl-level">1</span></div>
+            <div class="stat" id="stat-level"><span class="lbl-long" data-i18n="hudLevel">Niveau</span><span class="lbl-court" data-i18n="hudLevelShort">Lvl</span> : <span id="lbl-level">1</span></div>
             <div class="stat" id="stat-score">Score : <span id="lbl-score">0</span></div>
             <div class="stat" id="stat-fautes"><span data-i18n="hudFautes">Fautes</span> : <span id="lbl-fautes">0</span></div>
-            <button id="btn-pause" onclick="togglePause()" data-i18n="btnPause">Pause (Espace)</button>
+            <button id="btn-pause" onclick="togglePause()" data-i18n="btnPause">Pause</button>
             <button style="background:#555;" onclick="retourMenu()" data-i18n="btnMenu">Menu</button>
         </div>
         
+        <div id="mobile-controls">
+            <button type="button" id="mc-pause" class="btn-rond" onclick="togglePause()" aria-label="Pause">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+            </button>
+            <button type="button" id="mc-restart" class="btn-rond" onclick="demanderConfirmation('restart')" aria-label="Recommencer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            </button>
+            <button type="button" id="mc-quit" class="btn-rond" onclick="demanderConfirmation('quit')" aria-label="Quitter">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+
+        <div id="confirm-overlay">
+            <div id="confirm-box" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+                <p id="confirm-title">Recommencer la partie ?</p>
+                <p id="confirm-note">Le score de cette partie ne sera pas enregistré.</p>
+                <div id="confirm-actions">
+                    <button type="button" id="confirm-non" onclick="confirmerNon()">Annuler</button>
+                    <button type="button" id="confirm-oui" onclick="confirmerOui()">Recommencer</button>
+                </div>
+            </div>
+        </div>
+
         <div id="viewport-wrapper">
             <div id="viewport">
                 <div id="bg-staves"></div>
@@ -588,7 +671,7 @@
                 
                 <div id="pause-screen" class="overlay-screen" style="position: absolute; z-index:30;">
                     <h2 data-i18n="pauseTitle">JEU EN PAUSE</h2>
-                    <button onclick="togglePause()" data-i18n="btnResume">Reprendre (Espace)</button>
+                    <button onclick="togglePause()" data-i18n="btnResume">Reprendre</button>
                 </div>
 
                 <div id="game-over-screen" class="overlay-screen" style="position: absolute; z-index:30;">
@@ -905,8 +988,8 @@
 
         const DICTIONNAIRE = {
             fr: {
-                midiWaiting: "MIDI ATTENTE", midiReady: "MIDI PRÊT", midiError: "Pas de MIDI",
-                micReady: "MICRO PRÊT", micWaiting: "MICRO OFF",
+                midiWaiting: "MIDI ATTENTE", midiReady: "MIDI", midiError: "Pas de MIDI",
+                micReady: "MICRO", micWaiting: "MICRO OFF",
                 btnSavePreset: "+ Sauver", btnErase: "Effacer", btnScores: "Scores", presetChoose: "-- Modes de jeu --", presetArcade: "Mode Arcade (Défis)", presetUser: "Parties Enregistrées", menuTitle: "Paramètres de la partie",
                 btnModes: "MODES :", lblInputSource: "Source d'entrée :", srcMidi: "Clavier numérique (MIDI USB)", srcMic: "Piano Acoustique (Microphone)",
                 lblMD: "Clé de Sol :", lblMG: "Clé de Fa :",
@@ -920,9 +1003,9 @@
                 lblAmbitusTreble: "Ambitus Clé de Sol :", lblAmbitusBass: "Ambitus Clé de Fa :", ambTFacile: "Facile (Do4 - Do5)",
                 ambTNormal: "Normal (Do4 - Do6)", ambTDifficile: "Difficile (Fa3 - Do7)", ambBFacile: "Facile (Do3 - Do4)",
                 ambBNormal: "Normal (Do2 - Do4)", ambBDifficile: "Difficile (Do2 - Do5)", ambCustom: "Sur mesure...",
-                lblDe: "De :", lblA: "À :", lblTonalite: "Tonalité (Armure) :", btnStart: "Démarrer", btnTuto: "Tutoriel Vidéo", btnDonate: "Soutenir",
-                hudLevel: "Niveau", hudFautes: "Fautes", btnPause: "Pause (Espace)", btnMenu: "Menu",
-                pauseTitle: "JEU EN PAUSE", btnResume: "Reprendre (Espace)", btnReplay: "Rejouer", infiniteLabel: "Infini",
+                lblDe: "De :", lblA: "À :", lblTonalite: "Tonalité (Armure) :", btnStart: "Démarrer", btnTuto: "Tutoriel Vidéo",
+                hudLevel: "Niveau", hudLevelShort: "Lvl", hudFautes: "Fautes", btnPause: "Pause", btnMenu: "Menu",
+                pauseTitle: "JEU EN PAUSE", confirmRestart: "Recommencer la partie ?", confirmQuit: "Quitter la partie ?", confirmNote: "Le score de cette partie ne sera pas enregistré.", btnYesRestart: "Recommencer", btnYesQuit: "Quitter", btnCancel: "Annuler", btnResume: "Reprendre", btnReplay: "Rejouer", infiniteLabel: "Infini",
                 btnConfigAccords: "⚙️ Configurer...", chkMelodie: "Mélodie", chkFond: "Accords Fondamentaux", chkRenv: "Accords Renversés", chkArpS: "Arpèges Simples", chkArpC: "Arpèges Complexes", chkTierce: "Tierces", chkQuarte: "Quartes", chkQuinte: "Quintes", chkSixte: "Sixtes", btnOk: "Valider",
                 lblSansErreur: "Mode sans erreur :", optSeOn: "Activé (Pénalité)", optSeOff: "Désactivé",
                 scoresTitle: "Tableau des Scores", btnClose: "Fermer", errErase: "Vous ne pouvez effacer que vos modes enregistrés.", confirmErase: "Voulez-vous vraiment effacer ce mode ?",
@@ -930,8 +1013,8 @@
                 tournerAppareil: "Merci de tourner votre appareil en mode paysage pour jouer"
             },
             en: {
-                midiWaiting: "MIDI WAITING", midiReady: "MIDI READY", midiError: "No MIDI",
-                micReady: "MIC READY", micWaiting: "MIC OFF",
+                midiWaiting: "MIDI WAITING", midiReady: "MIDI", midiError: "No MIDI",
+                micReady: "MIC", micWaiting: "MIC OFF",
                 btnSavePreset: "+ Save", btnErase: "Delete", btnScores: "Scores", presetChoose: "-- Game Modes --", presetArcade: "Arcade Mode", presetUser: "Saved Games", menuTitle: "Game Settings",
                 btnModes: "MODES :", lblInputSource: "Input Source:", srcMidi: "Digital Keyboard (MIDI USB)", srcMic: "Acoustic Piano (Microphone)",
                 lblMD: "Treble Clef:", lblMG: "Bass Clef:",
@@ -945,9 +1028,9 @@
                 lblAmbitusTreble: "Treble Clef Range:", lblAmbitusBass: "Bass Clef Range:", ambTFacile: "Easy (C4 - C5)",
                 ambTNormal: "Normal (C4 - C6)", ambTDifficile: "Hard (F3 - C7)", ambBFacile: "Easy (C3 - C4)",
                 ambBNormal: "Normal (C2 - C4)", ambBDifficile: "Hard (C2 - C5)", ambCustom: "Custom...",
-                lblDe: "From:", lblA: "To:", lblTonalite: "Key Signature:", btnStart: "Start", btnTuto: "Video Tutorial", btnDonate: "Support",
-                hudLevel: "Level", hudFautes: "Mistakes", btnPause: "Space (Pause)", btnMenu: "Menu",
-                pauseTitle: "GAME PAUSED", btnResume: "Resume (Space)", btnReplay: "Replay", infiniteLabel: "Infinite",
+                lblDe: "From:", lblA: "To:", lblTonalite: "Key Signature:", btnStart: "Start", btnTuto: "Video Tutorial",
+                hudLevel: "Level", hudLevelShort: "Lvl", hudFautes: "Mistakes", btnPause: "Pause", btnMenu: "Menu",
+                pauseTitle: "GAME PAUSED", confirmRestart: "Restart the game?", confirmQuit: "Quit the game?", confirmNote: "This game's score won't be saved.", btnYesRestart: "Restart", btnYesQuit: "Quit", btnCancel: "Cancel", btnResume: "Resume", btnReplay: "Replay", infiniteLabel: "Infinite",
                 btnConfigAccords: "⚙️ Configure...", chkMelodie: "Melody", chkFond: "Root Chords", chkRenv: "Inversions", chkArpS: "Simple Arpeggios", chkArpC: "Complex Arpeggios", chkTierce: "Thirds", chkQuarte: "Fourths", chkQuinte: "Fifths", chkSixte: "Sixths", btnOk: "OK",
                 lblSansErreur: "Error-free mode:", optSeOn: "Enabled (Strict)", optSeOff: "Disabled",
                 scoresTitle: "High Scores", btnClose: "Close", errErase: "You can only delete saved games.", confirmErase: "Do you really want to delete this mode?",
@@ -955,8 +1038,8 @@
                 tournerAppareil: "Rotate your device to landscape mode to play"
             },
             es: {
-                midiWaiting: "ESPERANDO MIDI", midiReady: "MIDI LISTO", midiError: "Sin MIDI",
-                micReady: "MICRO LISTO", micWaiting: "MICRO APAGADO",
+                midiWaiting: "ESPERANDO MIDI", midiReady: "MIDI", midiError: "Sin MIDI",
+                micReady: "MICRO", micWaiting: "MICRO APAGADO",
                 btnSavePreset: "+ Guardar", btnErase: "Borrar", btnScores: "Puntuación", presetChoose: "-- Modos de juego --", presetArcade: "Modo Arcade", presetUser: "Partidas Guardadas", menuTitle: "Ajustes de la partida",
                 btnModes: "MODOS :", lblInputSource: "Fuente de entrada:", srcMidi: "Teclado digital (MIDI USB)", srcMic: "Piano acústico (Micrófono)",
                 lblMD: "Clave de Sol:", lblMG: "Clave de Fa:",
@@ -970,9 +1053,9 @@
                 lblAmbitusTreble: "Ámbito Clave de Sol:", lblAmbitusBass: "Ámbito Clave de Fa:", ambTFacile: "Fácil (Do4 - Do5)",
                 ambTNormal: "Normal (Do4 - Do6)", ambTDifficile: "Difícil (Fa3 - Do7)", ambBFacile: "Fácil (Do3 - Do4)",
                 ambBNormal: "Normal (Do2 - Do4)", ambBDifficile: "Difícil (Do2 - Do5)", ambCustom: "A medida...",
-                lblDe: "De:", lblA: "A:", lblTonalite: "Armadura:", btnStart: "Comenzar", btnTuto: "Tutorial en vídeo", btnDonate: "Apoyar",
-                hudLevel: "Nivel", hudFautes: "Errores", btnPause: "Pausa (Espacio)", btnMenu: "Menú",
-                pauseTitle: "JUEGO EN PAUSE", btnResume: "Reanudar (Espacio)", btnReplay: "Volver a jugar", infiniteLabel: "Infinito",
+                lblDe: "De:", lblA: "A:", lblTonalite: "Armadura:", btnStart: "Comenzar", btnTuto: "Tutorial en vídeo",
+                hudLevel: "Nivel", hudLevelShort: "Lvl", hudFautes: "Errores", btnPause: "Pausa", btnMenu: "Menú",
+                pauseTitle: "JUEGO EN PAUSA", confirmRestart: "¿Reiniciar la partida?", confirmQuit: "¿Salir de la partida?", confirmNote: "La puntuación de esta partida no se guardará.", btnYesRestart: "Reiniciar", btnYesQuit: "Salir", btnCancel: "Cancelar", btnResume: "Reanudar", btnReplay: "Volver a jugar", infiniteLabel: "Infinito",
                 btnConfigAccords: "⚙️ Configurar...", chkMelodie: "Melodía", chkFond: "Acordes Fundamentales", chkRenv: "Inversiones", chkArpS: "Arpegios Simples", chkArpC: "Arpegios Complejos", chkTierce: "Terceras", chkQuarte: "Cuartas", chkQuinte: "Quintas", chkSixte: "Sextas", btnOk: "Validar",
                 lblSansErreur: "Modo sin errores:", optSeOn: "Activado (Penalización)", optSeOff: "Désactivado",
                 scoresTitle: "Tabla de puntuación", btnClose: "Cerrar", errErase: "Solo puede borrar sus partidas guardadas.", confirmErase: "¿Seguro que quiere borrar este modo?",
@@ -1719,6 +1802,41 @@
             document.getElementById("final-score").innerText = `Niveau ${niveau} | Score : ${score} pts`;
             enregistrerScoreFinDePartie(score); 
             document.getElementById("game-over-screen").style.display = "flex";
+        }
+
+        // Bouton rond "recommencer" (smartphone). On arrête d'abord la boucle en cours (jeuActif = false), puis on
+        // relance lancerJeu() au prochain rafraîchissement d'écran : sans cette précaution, deux boucles de jeu
+        // tourneraient en même temps et la partie irait deux fois trop vite.
+        function recommencerPartie() {
+            jeuActif = false;
+            requestAnimationFrame(function() { requestAnimationFrame(function() { lancerJeu(); }); });
+        }
+
+        // Confirmation avant "recommencer" / "quitter" (boutons ronds smartphone). Si la partie tourne, on la met
+        // en pause pendant que la question est affichée ; "Annuler" la remet en marche, "Oui" exécute l'action.
+        // Si la partie est déjà terminée (Game Over), il n'y a rien à perdre : l'action est immédiate.
+        let confirmAction = null, confirmRelancer = false;
+        function demanderConfirmation(action) {
+            if (!jeuActif) { if (action === 'restart') recommencerPartie(); else retourMenu(); return; }
+            const T = DICTIONNAIRE[langueActuelle];
+            confirmAction = action; confirmRelancer = !enPause;
+            if (!enPause) { togglePause(); document.getElementById("pause-screen").style.display = "none"; }
+            document.getElementById("confirm-title").innerText = action === 'restart' ? T.confirmRestart : T.confirmQuit;
+            document.getElementById("confirm-note").innerText = T.confirmNote;
+            document.getElementById("confirm-oui").innerText = action === 'restart' ? T.btnYesRestart : T.btnYesQuit;
+            document.getElementById("confirm-oui").className = action === 'restart' ? "confirm-restart" : "confirm-quit";
+            document.getElementById("confirm-non").innerText = T.btnCancel;
+            document.getElementById("confirm-overlay").style.display = "flex";
+        }
+        function confirmerOui() {
+            const a = confirmAction; confirmAction = null;
+            document.getElementById("confirm-overlay").style.display = "none";
+            if (a === 'restart') recommencerPartie(); else if (a === 'quit') retourMenu();
+        }
+        function confirmerNon() {
+            document.getElementById("confirm-overlay").style.display = "none";
+            if (confirmAction && confirmRelancer) togglePause();
+            confirmAction = null;
         }
 
         function retourMenu() {
