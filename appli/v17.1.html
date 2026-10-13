@@ -295,27 +295,28 @@
            resserrent progressivement avec la hauteur de l'écran (clamp + vh) pour tenir sans défilement.
            Le smartphone (hauteur <= 500px) n'est pas concerné : il garde la compaction. --- */
         @media (orientation: landscape) and (min-height: 501px) {
+            :root { --k: 1; } /* facteur global d'aération : plus petit = menu plus compact (laisse la place à la barre Android) */
             /* (pas de changement du padding de <body> : il est partagé avec l'écran de jeu, qu'on ne touche pas) */
-            .top-controls { padding: clamp(6px, 1.2vh, 10px); margin: clamp(0px, 0.8vh, 7px) clamp(0px, 0.8vh, 7px) clamp(8px, 1.8vh, 15px); gap: clamp(8px, 1.8vh, 15px); }
-            .top-controls-left { gap: clamp(8px, 1.8vh, 15px); }
-            .main-title { font-size: clamp(20px, 3.4vh, 28px); }
-            .midi-badge { padding: clamp(5px, 1vh, 8px) clamp(12px, 2vh, 18px); font-size: clamp(12px, 1.6vh, 13px); }
-            .youtube-link { padding: clamp(4px, 0.8vh, 6px) clamp(10px, 1.7vh, 14px); font-size: clamp(11px, 1.6vh, 13px); }
-            .mode-indicator { padding: clamp(6px, 1.1vh, 9px) clamp(12px, 2vh, 16px); font-size: clamp(12px, 1.7vh, 14px); }
-            #cfg-presets { padding: clamp(6px, 1.2vh, 10px) 35px clamp(6px, 1.2vh, 10px) 15px; font-size: clamp(13px, 2vh, 16px); }
+            .top-controls { padding: clamp(6px, calc(var(--k) * 1.2vh), 10px); margin: clamp(0px, calc(var(--k) * 0.8vh), 7px) clamp(0px, calc(var(--k) * 0.8vh), 7px) clamp(8px, calc(var(--k) * 1.8vh), 15px); gap: clamp(8px, calc(var(--k) * 1.8vh), 15px); }
+            .top-controls-left { gap: clamp(8px, calc(var(--k) * 1.8vh), 15px); }
+            .main-title { font-size: clamp(20px, calc(var(--k) * 3.4vh), 28px); }
+            .midi-badge { padding: clamp(5px, calc(var(--k) * 1vh), 8px) clamp(12px, calc(var(--k) * 2vh), 18px); font-size: clamp(12px, calc(var(--k) * 1.6vh), 13px); }
+            .youtube-link { padding: clamp(4px, calc(var(--k) * 0.8vh), 6px) clamp(10px, calc(var(--k) * 1.7vh), 14px); font-size: clamp(11px, calc(var(--k) * 1.6vh), 13px); }
+            .mode-indicator { padding: clamp(6px, calc(var(--k) * 1.1vh), 9px) clamp(12px, calc(var(--k) * 2vh), 16px); font-size: clamp(12px, calc(var(--k) * 1.7vh), 14px); }
+            #cfg-presets { padding: clamp(6px, calc(var(--k) * 1.2vh), 10px) 35px clamp(6px, calc(var(--k) * 1.2vh), 10px) 15px; font-size: clamp(13px, calc(var(--k) * 2vh), 16px); }
             #cfg-lang { padding: 5px 30px 5px 10px !important; font-size: 13px; }
 
             #menu-config {
-                padding: clamp(12px, 3vh, 34px); margin: clamp(6px, 1vh, 10px) clamp(0px, 0.8vh, 7px) clamp(8px, 2vh, 20px);
+                padding: clamp(12px, calc(var(--k) * 3vh), 34px); margin: clamp(6px, calc(var(--k) * 1vh), 10px) clamp(0px, calc(var(--k) * 0.8vh), 7px) clamp(8px, calc(var(--k) * 2vh), 20px);
                 max-height: none; overflow: visible;
             }
             .config-grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, 3.6vh, 40px) 24px; margin-bottom: 0;
+                grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, calc(var(--k) * 3.6vh), 40px) 24px; margin-bottom: 0;
             }
-            .config-group label { margin-bottom: clamp(3px, 1vh, 10px); font-size: clamp(10px, 1.8vh, 15px); }
-            select { padding: clamp(6px, 1.7vh, 16px); font-size: clamp(12px, 2vh, 17px); }
+            .config-group label { margin-bottom: clamp(3px, calc(var(--k) * 1vh), 10px); font-size: clamp(10px, calc(var(--k) * 1.8vh), 15px); }
+            select { padding: clamp(6px, calc(var(--k) * 1.7vh), 16px); font-size: clamp(12px, calc(var(--k) * 2vh), 17px); }
             select option { padding: 10px; }
-            #btn-config-md, #btn-config-mg { padding: clamp(6px, 1.7vh, 16px) !important; font-size: clamp(12px, 2vh, 17px) !important; }
+            #btn-config-md, #btn-config-mg { padding: clamp(6px, calc(var(--k) * 1.7vh), 16px) !important; font-size: clamp(12px, calc(var(--k) * 2vh), 17px) !important; }
 
             /* Placement des menus (3 colonnes) : on ne déplace rien dans le code de la page, seulement l'ordre d'affichage */
             .config-grid > .config-group:nth-child(1)  { grid-column: 1; grid-row: 1; } /* Source d'entrée */
@@ -335,17 +336,27 @@
             .config-grid > .panel { display: contents !important; }
             .ambitus-zone {
                 grid-column: 1 / span 2; grid-row: 5; align-self: stretch; flex-grow: 0;
-                background: rgba(30, 30, 36, 0.6); padding: clamp(10px, 2.4vh, 26px); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
+                background: rgba(30, 30, 36, 0.6); padding: clamp(10px, calc(var(--k) * 2.4vh), 26px); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
                 gap: 24px !important;
             }
-            .start-zone { grid-column: 3; grid-row: 4 / span 2; align-self: stretch; min-width: 0 !important; gap: clamp(6px, 1.2vh, 10px) !important; }
-            /* "Sur mesure..." : les menus De / À s'affichent côte à côte pour limiter la hauteur */
-            .custom-ambitus-panel { flex-direction: row; gap: 10px; padding: 8px; margin-top: 10px; }
-            .custom-ambitus-panel > div { flex: 1; min-width: 0; }
-            .custom-ambitus-panel label { margin-bottom: 3px; }
-            #btn-start-game { flex: 5 !important; min-height: 40px !important; font-size: clamp(16px, 3vh, 24px) !important; }
-            .btn-tuto { flex: 1 !important; min-height: clamp(26px, 4.5vh, 40px) !important; font-size: clamp(11px, 1.8vh, 13px) !important; }
+            .start-zone { grid-column: 3; grid-row: 4 / span 2; align-self: stretch; min-width: 0 !important; gap: clamp(6px, calc(var(--k) * 1.2vh), 10px) !important; }
+            /* "Sur mesure..." : "De : [menu]   À : [menu]" sur une seule ligne (libellé à gauche de chaque menu) */
+            .custom-ambitus-panel { flex-direction: row; gap: 10px; padding: 6px 8px; margin-top: 8px; align-items: center; }
+            .custom-ambitus-panel > div { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+            .custom-ambitus-panel label { margin: 0; flex: 0 0 auto; }
+            .custom-ambitus-panel select { flex: 1; min-width: 0; padding-top: 5px; padding-bottom: 5px; }
+            /* Quand un ambitus "Sur mesure" est ouvert, la grille se resserre pour ne pas dépasser de l'écran */
+            .config-grid:has(.custom-ambitus-panel[style*="flex"]) { row-gap: calc(var(--k) * 1.6vh); }
+            .config-grid:has(.custom-ambitus-panel[style*="flex"]) .config-group label { margin-bottom: 2px; }
+            .config-grid:has(.custom-ambitus-panel[style*="flex"]) .ambitus-zone { padding-top: 8px; padding-bottom: 8px; }
+            #btn-start-game { flex: 5 !important; min-height: 40px !important; font-size: clamp(16px, calc(var(--k) * 3vh), 24px) !important; }
+            .btn-tuto { flex: 1 !important; min-height: clamp(26px, calc(var(--k) * 4.5vh), 40px) !important; font-size: clamp(11px, calc(var(--k) * 1.8vh), 13px) !important; }
         }
+
+        /* Paliers d'aération de l'écran de sélection tablette (réservent la place de la barre Android qui réapparaît
+           quand un menu déroulant s'ouvre) */
+        @media (orientation: landscape) and (min-height: 501px) and (max-height: 650px) { :root { --k: 0.8; } }
+        @media (orientation: landscape) and (min-height: 651px) and (max-height: 900px) { :root { --k: 0.97; } }
 
         /* --- Smartphone (paysage, écran peu haut) : écran de jeu plein écran, bandeau du haut masqué. ---
            On se base sur la HAUTEUR : en paysage, les grands téléphones et les petites tablettes ont des largeurs
