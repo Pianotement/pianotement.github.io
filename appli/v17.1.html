@@ -290,6 +290,31 @@
             #viewport-wrapper { padding: 6px 0; max-height: calc(100vh - 95px); max-height: calc(100dvh - 95px); overflow: hidden; }
         }
 
+        /* --- Fenêtre de choix (tablette) : remplace la liste déroulante native d'Android, qui faisait réapparaître
+           la barre système et décalait toute l'interface. Invisible tant qu'on n'appuie pas sur un menu. --- */
+        #picker-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9998; box-sizing: border-box;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 16px;
+        }
+        #picker-box {
+            display: flex; flex-direction: column; width: min(440px, 86vw); max-height: 80vh; max-height: 80dvh; overflow: hidden;
+            background: rgba(42,42,53,0.98); border: 2px solid #f39c12; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            font-family: 'Montserrat', sans-serif; color: #fff; text-align: left;
+        }
+        #picker-title { padding: 14px 18px; font-size: 16px; font-weight: 700; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.12); flex: 0 0 auto; }
+        #picker-list { overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; flex: 1 1 auto; }
+        .picker-group { padding: 10px 18px 6px; font-size: 12px; font-weight: 700; color: #f39c12; text-transform: uppercase; letter-spacing: 0.5px; }
+        .picker-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 8px 18px; box-sizing: border-box;
+            font-size: 17px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.07); -webkit-tap-highlight-color: transparent;
+        }
+        .picker-row:last-child { border-bottom: none; }
+        .picker-row:active { background: rgba(255,255,255,0.1); }
+        .picker-row.picker-selected { background: rgba(243,156,18,0.18); color: #ffd28a; font-weight: 700; }
+        .picker-row.picker-disabled { opacity: 0.4; cursor: default; }
+        .picker-radio { flex: 0 0 auto; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; border: 2px solid rgba(255,255,255,0.55); }
+        .picker-selected .picker-radio { border: 6px solid #f39c12; }
+
         /* --- Tablette (paysage, hauteur > 500px) : écran de sélection aéré, 3 colonnes. ---
            Annule la compaction ci-dessus pour retrouver les tailles d'origine, mais les marges et tailles se
            resserrent progressivement avec la hauteur de l'écran (clamp + vh) pour tenir sans défilement.
@@ -665,6 +690,13 @@
                     </a>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="picker-overlay" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+        <div id="picker-box">
+            <div id="picker-title"></div>
+            <div id="picker-list"></div>
         </div>
     </div>
 
@@ -2050,6 +2082,120 @@
         // Supprime le menu contextuel (appui long) : la CSS seule (-webkit-touch-callout) est peu fiable sur
         // Chrome Android, contrairement à cette interception directe de l'évènement.
         document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // --- Fenêtre de choix centrée (tablette uniquement) ---------------------------------------------------
+        // Sur tablette, Android ouvre les listes déroulantes en petite fenêtre collée au menu, ce qui fait
+        // réapparaître sa barre système et décale toute l'interface. On intercepte donc l'appui sur un menu
+        // et on affiche à la place une fenêtre centrée (comme Android le fait déjà sur smartphone).
+        // Le menu <select> d'origine reste le "vrai" menu : on lui donne la valeur choisie puis on déclenche son
+        // évènement "change", exactement comme un choix natif. Le moteur du jeu n'est donc pas concerné.
+        // Si quelque chose échoue, on laisse la liste native d'Android s'ouvrir (repli de sécurité).
+        (function() {
+            const estTablette = () => window.matchMedia('(orientation: landscape) and (min-height: 501px)').matches;
+            const overlay = document.getElementById('picker-overlay');
+            const titre = document.getElementById('picker-title');
+            const liste = document.getElementById('picker-list');
+            if (!overlay || !titre || !liste) return;
+            let selectOuvert = null, tempsOuverture = 0, departTouche = null;
+
+            const nettoyer = (t) => (t || '').replace(/\s*:\s*$/, '').trim();
+            const TITRES_SANS_LIBELLE = { "cfg-lang": { fr: "Langue", en: "Language", es: "Idioma" } };
+
+            function titrePour(sel) {
+                try {
+                    if (TITRES_SANS_LIBELLE[sel.id]) return TITRES_SANS_LIBELLE[sel.id][langueActuelle] || TITRES_SANS_LIBELLE[sel.id].fr;
+                    if (sel.id === 'cfg-presets') return nettoyer(DICTIONNAIRE[langueActuelle].btnModes);
+                    const propre = sel.parentElement && sel.parentElement.querySelector(':scope > label');
+                    const groupe = sel.closest('.config-group');
+                    const labelGroupe = groupe && groupe.querySelector(':scope > label');
+                    if (propre && labelGroupe && propre !== labelGroupe) return nettoyer(labelGroupe.textContent) + ' — ' + nettoyer(propre.textContent);
+                    if (propre) return nettoyer(propre.textContent);
+                    if (labelGroupe) return nettoyer(labelGroupe.textContent);
+                } catch (e) {}
+                return '';
+            }
+
+            function fermer() {
+                overlay.style.display = 'none'; liste.innerHTML = ''; selectOuvert = null;
+            }
+
+            function choisir(sel, valeur) {
+                const avant = sel.value;
+                fermer();
+                if (valeur === avant) return;
+                sel.value = valeur;
+                sel.dispatchEvent(new Event('input', { bubbles: true }));
+                sel.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            function ouvrir(sel) {
+                try {
+                    liste.innerHTML = '';
+                    let ligneSelectionnee = null;
+                    const ajouterOption = (opt) => {
+                        const ligne = document.createElement('div');
+                        ligne.className = 'picker-row' + (opt.disabled ? ' picker-disabled' : '') + (opt.value === sel.value && opt.selected ? ' picker-selected' : '');
+                        const txt = document.createElement('span'); txt.textContent = opt.textContent;
+                        const radio = document.createElement('span'); radio.className = 'picker-radio';
+                        ligne.appendChild(txt); ligne.appendChild(radio);
+                        if (!opt.disabled) ligne.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            if (Date.now() - tempsOuverture < 350) return; // ignore un éventuel "clic fantôme" du doigt qui vient d'ouvrir
+                            choisir(sel, opt.value);
+                        });
+                        if (ligne.classList.contains('picker-selected')) ligneSelectionnee = ligne;
+                        liste.appendChild(ligne);
+                    };
+                    Array.from(sel.children).forEach(function(enfant) {
+                        if (enfant.tagName === 'OPTGROUP') {
+                            if (!enfant.children.length) return;
+                            const entete = document.createElement('div'); entete.className = 'picker-group'; entete.textContent = enfant.label; liste.appendChild(entete);
+                            Array.from(enfant.children).forEach(ajouterOption);
+                        } else if (enfant.tagName === 'OPTION') ajouterOption(enfant);
+                    });
+                    if (!liste.children.length) return false;
+                    titre.textContent = titrePour(sel);
+                    titre.style.display = titre.textContent ? 'block' : 'none';
+                    selectOuvert = sel; tempsOuverture = Date.now();
+                    overlay.style.display = 'flex';
+                    if (ligneSelectionnee) liste.scrollTop = Math.max(0, ligneSelectionnee.offsetTop - (liste.clientHeight - ligneSelectionnee.offsetHeight) / 2);
+                    return true;
+                } catch (e) { fermer(); return false; }
+            }
+
+            // Appui à l'extérieur de la fenêtre : on ferme sans rien changer
+            overlay.addEventListener('click', function(e) { if (e.target === overlay && Date.now() - tempsOuverture >= 350) fermer(); });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && selectOuvert) { e.preventDefault(); fermer(); } });
+            window.addEventListener('resize', function() { if (selectOuvert && !estTablette()) fermer(); });
+
+            const selectVise = (e) => { const t = e.target; return (t && t.tagName === 'SELECT' && !t.disabled) ? t : null; };
+
+            // Souris / stylet : on bloque l'ouverture native au "mousedown", on ouvre au "click"
+            document.addEventListener('mousedown', function(e) { if (estTablette() && selectVise(e)) e.preventDefault(); }, true);
+            document.addEventListener('click', function(e) {
+                const sel = selectVise(e);
+                if (!sel || !estTablette()) return;
+                if (ouvrir(sel)) { e.preventDefault(); e.stopPropagation(); }
+            }, true);
+            // Doigt : on ouvre à la fin de l'appui (sauf si le doigt a glissé, ce qui était un défilement)
+            document.addEventListener('touchstart', function(e) {
+                const t = e.touches[0]; departTouche = (selectVise(e) && t) ? { x: t.clientX, y: t.clientY } : null;
+            }, { capture: true, passive: true });
+            document.addEventListener('touchend', function(e) {
+                const sel = selectVise(e);
+                if (!sel || !estTablette() || !departTouche) return;
+                const t = e.changedTouches[0];
+                if (t && (Math.abs(t.clientX - departTouche.x) > 12 || Math.abs(t.clientY - departTouche.y) > 12)) return;
+                departTouche = null;
+                if (ouvrir(sel)) { e.preventDefault(); e.stopPropagation(); }
+            }, { capture: true, passive: false });
+            // Clavier (Entrée / Espace / flèche bas sur un menu sélectionné)
+            document.addEventListener('keydown', function(e) {
+                const sel = selectVise(e);
+                if (!sel || !estTablette() || !(e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' && e.altKey)) return;
+                if (ouvrir(sel)) e.preventDefault();
+            }, true);
+        })();
     </script>
 </body>
 </html>
